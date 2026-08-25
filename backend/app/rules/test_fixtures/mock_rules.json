@@ -1,0 +1,90 @@
+[
+  {
+    "rule_id": "TEST_RULE_001_PASS",
+    "rule_name": "[TEST_ONLY] Dummy Pass Rule",
+    "description": "NON_REGULATORY test rule to verify PASS condition",
+    "applicable_product_category": ["test_category"],
+    "traceability": {
+      "source_document": "TEST_DOCUMENT",
+      "source_rule": "TEST_RULE_1",
+      "source_clause": "TEST_CLAUSE_A",
+      "source_amendment_year": "2024"
+    },
+    "effective_date": "2026-01-01",
+    "requirement": "TEST_FIELD_A must exist",
+    "input_field": "TEST_FIELD_A",
+    "condition": "EXISTS",
+    "severity": "high",
+    "failure_message": "TEST_FIELD_A is missing",
+    "evidence_requirement": "Extract TEST_FIELD_A",
+    "version": "1.0",
+    "status": "active",
+    "human_verification_required": false
+  },
+  {
+    "rule_id": "TEST_RULE_002_HUMAN_REVIEW",
+    "rule_name": "[TEST_ONLY] Dummy Human Review Rule",
+    "description": "NON_REGULATORY test rule to verify REQUIRES_HUMAN_REVIEW condition",
+    "applicable_product_category": ["test_category"],
+    "traceability": {
+      "source_document": "TEST_DOCUMENT",
+      "source_rule": "TEST_RULE_2",
+      "source_clause": "TEST_CLAUSE_B",
+      "source_amendment_year": "2024"
+    },
+    "effective_date": "2026-01-01",
+    "requirement": "Requires human review",
+    "input_field": "TEST_FIELD_B",
+    "condition": "EXISTS",
+    "severity": "low",
+    "failure_message": "Check manually",
+    "evidence_requirement": "Extract TEST_FIELD_B",
+    "version": "1.0",
+    "status": "active",
+    "human_verification_required": true
+  },
+  {
+    "rule_id": "TEST_RULE_003_DRAFT",
+    "rule_name": "[TEST_ONLY] Dummy Draft Rule",
+    "description": "NON_REGULATORY test rule to verify DRAFT is not executed",
+    "applicable_product_category": ["test_category"],
+    "traceability": {
+      "source_document": "TEST_DOCUMENT",
+      "source_rule": "TEST_RULE_3",
+      "source_clause": "TEST_CLAUSE_C",
+      "source_amendment_year": "2024"
+    },
+    "effective_date": "2026-01-01",
+    "requirement": "Should be ignored",
+    "input_field": "TEST_FIELD_C",
+    "condition": "EXISTS",
+    "severity": "low",
+    "failure_message": "Ignored",
+    "evidence_requirement": "None",
+    "version": "1.0",
+    "status": "draft",
+    "human_verification_required": false
+  },
+  {
+    "rule_id": "TEST_RULE_004_DEPRECATED",
+    "rule_name": "[TEST_ONLY] Dummy Deprecated Rule",
+    "description": "NON_REGULATORY test rule to verify DEPRECATED is not executed",
+    "applicable_product_category": ["test_category"],
+    "traceability": {
+      "source_document": "TEST_DOCUMENT",
+      "source_rule": "TEST_RULE_4",
+      "source_clause": "TEST_CLAUSE_D",
+      "source_amendment_year": "2024"
+    },
+    "effective_date": "2026-01-01",
+    "requirement": "Should be ignored",
+    "input_field": "TEST_FIELD_D",
+    "condition": "EXISTS",
+    "severity": "low",
+    "failure_message": "Ignored",
+    "evidence_requirement": "None",
+    "version": "1.0",
+    "status": "deprecated",
+    "human_verification_required": false
+  }
+]
