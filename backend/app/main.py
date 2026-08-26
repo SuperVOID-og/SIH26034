@@ -1,5 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.api import inspections
+from app.core.database import Base, engine
+
+# Create database tables for development only
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="PackSure AI API",
@@ -15,6 +20,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(inspections.router, prefix="/api/inspections", tags=["inspections"])
 
 @app.get("/health")
 def health_check():
