@@ -22,7 +22,8 @@ class Inspection(Base):
     
     # Compliance Engine Results
     compliance_score = Column(Integer, nullable=True)
-    violations = Column(JSON, nullable=True)
+    violations = Column(JSON, nullable=True) # Preserved for compatibility
+    compliance_results = Column(JSON, nullable=True) # Full ComplianceSummary
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

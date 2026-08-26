@@ -290,3 +290,74 @@ def submit_human_review(inspection_id: int, review: ReviewSubmission, db: Sessio
     db.commit()
     db.refresh(db_inspection)
     return db_inspection
+
+import json
+from copy import deepcopy
+from app.schemas.compliance import RuleDefinition
+from app.services.compliance.rule_engine import DeterministicRuleEngine
+import os
+
+@router.post("/{inspection_id}/evaluate", response_model=InspectionResponse)
+def evaluate_compliance(inspection_id: int, db: Session = Depends(get_db)):
+    db_inspection = db.query(Inspection).filter(Inspection.id == inspection_id).first()
+    if not db_inspection:
+        raise HTTPException(status_code=404, detail="Inspection not found")
+        
+    if db_inspection.status != InspectionStatus.HUMAN_VERIFIED:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot evaluate from status: {db_inspection.status.value}. Must be HUMAN_VERIFIED."
+        )
+        
+    if not db_inspection.verified_data:
+        raise HTTPException(status_code=400, detail="Missing verified_data for evaluation.")
+        
+    try:
+        # Validate stored verified_data
+        verified_extraction = HumanVerifiedExtraction(**db_inspection.verified_data)
+        
+        # Inject package_context and product_category into a COPY of the metadata
+        metadata_copy = deepcopy(verified_extraction.metadata)
+        metadata_copy["package_context"] = db_inspection.package_context
+        metadata_copy["product_category"] = db_inspection.product_category
+        
+        # We create a new copy with the updated metadata for the engine
+        extraction_for_engine = HumanVerifiedExtraction(
+            data=verified_extraction.data,
+            metadata=metadata_copy
+        )
+        
+        # Load production rules ONLY
+        rules_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
+            "rules", 
+            "packaged_commodities_core.json"
+        )
+        
+        if not os.path.exists(rules_path):
+            raise FileNotFoundError(f"Production rule file not found at {rules_path}")
+            
+        with open(rules_path, 'r', encoding='utf-8') as f:
+            rules_json = json.load(f)
+            
+        rule_definitions = [RuleDefinition(**r) for r in rules_json]
+        
+        engine = DeterministicRuleEngine(rule_definitions)
+        compliance_summary = engine.evaluate(extraction_for_engine)
+        
+        # Persist complete ComplianceSummary into compliance_results
+        db_inspection.compliance_results = compliance_summary.model_dump()
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(db_inspection, "compliance_results")
+        
+        # Do not modify compliance_score yet
+        
+        db_inspection.status = InspectionStatus.COMPLIANCE_EVALUATED
+        db.commit()
+        db.refresh(db_inspection)
+        return db_inspection
+        
+    except Exception as e:
+        db_inspection.status = InspectionStatus.FAILED
+        db.commit()
+        raise HTTPException(status_code=500, detail=f"Compliance evaluation failed: {str(e)}")

@@ -27,6 +27,7 @@ class InspectionUpdate(BaseModel):
     verified_data: Optional[Dict[str, Any]] = None
     compliance_score: Optional[int] = None
     violations: Optional[Dict[str, Any]] = None
+    compliance_results: Optional[Dict[str, Any]] = None
 
 class InspectionResponse(BaseModel):
     id: int
@@ -38,6 +39,7 @@ class InspectionResponse(BaseModel):
     verified_data: Optional[Dict[str, Any]]
     compliance_score: Optional[int]
     violations: Optional[Dict[str, Any]]
+    compliance_results: Optional[Dict[str, Any]]
     created_at: datetime
     updated_at: Optional[datetime]
 
