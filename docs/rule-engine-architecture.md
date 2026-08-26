@@ -3,7 +3,7 @@
 ## Overview
 The PackSure AI Rule Engine is a strictly deterministic evaluation system. It takes human-verified structured data (extracted via AI) and evaluates it against version-controlled JSON/YAML rules. **No AI is used in the compliance evaluation phase.**
 
-## Workflow
+## Workflow 
 1. `HumanVerifiedExtraction`: The input to the engine. A JSON payload containing the verified declarations.
 2. `Applicable Rules`: The engine filters out rules based on product category and exemption status.
 3. `Deterministic Evaluation`: Simple operators (`EXISTS`, `GREATER_THAN`) evaluate the data.

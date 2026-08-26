@@ -1,0 +1,142 @@
+[
+  {
+    "rule_id": "PC_RULE_001_MFG_DETAILS",
+    "rule_name": "Manufacturer/Packer/Importer Details",
+    "description": "Verifies the presence of the name and address of the manufacturer, packer, or importer.",
+    "traceability": {
+      "source_document": "Legal Metrology (Packaged Commodities) Rules, 2011",
+      "source_rule": "Rule 6",
+      "source_clause": "Sub-rule (1)(a)",
+      "source_amendment_year": "2011 (Base)"
+    },
+    "effective_date": "2011-03-07",
+    "requirement": "Every package shall bear the name and address of the manufacturer, or where the manufacturer is not the packer, the name and address of the manufacturer and packer and for any imported package the name and address of the importer.",
+    "input_field": "manufacturer_packer_importer_details",
+    "condition": "EXISTS",
+    "applicability_conditions": [
+      {
+        "field": "package_context",
+        "operator": "EQUALS",
+        "value": "retail"
+      }
+    ],
+    "exemption_conditions": [
+      {
+        "field": "product_category",
+        "operator": "EQUALS",
+        "value": "medical_device"
+      }
+    ],
+    "severity": "critical",
+    "failure_message": "The name and address of the manufacturer, packer, or importer is missing.",
+    "evidence_requirement": "Extracted text showing the name and address.",
+    "version": "1.0",
+    "status": "human_verified",
+    "human_verification_required": false
+  },
+  {
+    "rule_id": "PC_RULE_002_GENERIC_NAME",
+    "rule_name": "Common or Generic Name",
+    "description": "Verifies the presence of the common or generic name of the commodity.",
+    "traceability": {
+      "source_document": "Legal Metrology (Packaged Commodities) Rules, 2011",
+      "source_rule": "Rule 6",
+      "source_clause": "Sub-rule (1)(b)",
+      "source_amendment_year": "2011 (Base)"
+    },
+    "effective_date": "2011-03-07",
+    "requirement": "The common or generic names of the commodity contained in the package must be declared.",
+    "input_field": "generic_name",
+    "condition": "EXISTS",
+    "applicability_conditions": [
+      {
+        "field": "package_context",
+        "operator": "EQUALS",
+        "value": "retail"
+      }
+    ],
+    "exemption_conditions": [
+      {
+        "field": "product_category",
+        "operator": "EQUALS",
+        "value": "medical_device"
+      }
+    ],
+    "severity": "high",
+    "failure_message": "The common or generic name of the commodity is missing.",
+    "evidence_requirement": "Extracted text showing the commodity name.",
+    "version": "1.0",
+    "status": "human_verified",
+    "human_verification_required": false
+  },
+  {
+    "rule_id": "PC_RULE_003_NET_QUANTITY",
+    "rule_name": "Net Quantity",
+    "description": "Verifies the presence of the net quantity declaration.",
+    "traceability": {
+      "source_document": "Legal Metrology (Packaged Commodities) Rules, 2011",
+      "source_rule": "Rule 6",
+      "source_clause": "Sub-rule (1)(c)",
+      "source_amendment_year": "2011 (Base)"
+    },
+    "effective_date": "2011-03-07",
+    "requirement": "The net quantity, in terms of the standard unit of weight or measure, must be declared.",
+    "input_field": "net_quantity",
+    "condition": "EXISTS",
+    "applicability_conditions": [
+      {
+        "field": "package_context",
+        "operator": "EQUALS",
+        "value": "retail"
+      }
+    ],
+    "exemption_conditions": [
+      {
+        "field": "product_category",
+        "operator": "EQUALS",
+        "value": "medical_device"
+      }
+    ],
+    "severity": "critical",
+    "failure_message": "The net quantity declaration is missing.",
+    "evidence_requirement": "Extracted text showing the net quantity.",
+    "version": "1.0",
+    "status": "human_verified",
+    "human_verification_required": false
+  },
+  {
+    "rule_id": "PC_RULE_004_MRP",
+    "rule_name": "Maximum Retail Price (MRP)",
+    "description": "Verifies the presence of the MRP declaration.",
+    "traceability": {
+      "source_document": "Legal Metrology (Packaged Commodities) Rules, 2011",
+      "source_rule": "Rule 6",
+      "source_clause": "Sub-rule (1)(e)",
+      "source_amendment_year": "2011 (Base)"
+    },
+    "effective_date": "2011-03-07",
+    "requirement": "The retail sale price of the package shall clearly indicate that it is the maximum retail price inclusive of all taxes.",
+    "input_field": "mrp",
+    "condition": "EXISTS",
+    "applicability_conditions": [
+      {
+        "field": "package_context",
+        "operator": "EQUALS",
+        "value": "retail"
+      }
+    ],
+    "exemption_conditions": [
+      {
+        "field": "product_category",
+        "operator": "EQUALS",
+        "value": "medical_device"
+      }
+    ],
+    "severity": "critical",
+    "failure_message": "The Maximum Retail Price (MRP) declaration is missing.",
+    "evidence_requirement": "Extracted text showing the MRP.",
+    "version": "1.0",
+    "status": "human_verified",
+    "human_verification_required": false
+  }
+]
