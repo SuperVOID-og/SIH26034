@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from typing import Optional
 import os
 
 class Settings(BaseSettings):
@@ -10,6 +11,10 @@ class Settings(BaseSettings):
     
     # Database
     DATABASE_URL: str = "sqlite:///./packsure.db"
+    
+    # AI Configuration
+    GEMINI_API_KEY: Optional[str] = None
+    GEMINI_MODEL: str = "gemini-2.5-flash"
 
     class Config:
         env_file = ".env"

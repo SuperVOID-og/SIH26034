@@ -156,3 +156,66 @@ def upload_inspection_images(
     db.commit()
     db.refresh(db_inspection)
     return db_inspection
+
+from app.services.extraction.gemini_service import GeminiExtractionService, GeminiExtractionError
+
+@router.post("/{inspection_id}/extract", response_model=InspectionResponse)
+def extract_inspection_data(inspection_id: int, db: Session = Depends(get_db)):
+    db_inspection = db.query(Inspection).filter(Inspection.id == inspection_id).first()
+    if not db_inspection:
+        raise HTTPException(status_code=404, detail="Inspection not found")
+        
+    # Pre-flight state check
+    if db_inspection.status != InspectionStatus.IMAGES_UPLOADED:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot extract data from status: {db_inspection.status.value}. Must be IMAGES_UPLOADED."
+        )
+        
+    # Pre-flight data checks
+    if not db_inspection.image_paths:
+        raise HTTPException(status_code=400, detail="No images associated with this inspection.")
+        
+    if not settings.GEMINI_API_KEY:
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not configured.")
+        
+    # Verify at least one image exists physically
+    has_valid_image = False
+    for rel_path in db_inspection.image_paths:
+        abs_path = os.path.join(settings.LOCAL_STORAGE_DIR, rel_path.replace("/", os.sep))
+        if os.path.exists(abs_path):
+            has_valid_image = True
+            break
+            
+    if not has_valid_image:
+        raise HTTPException(status_code=400, detail="No physical image files found on disk.")
+
+    # Transition to pending
+    db_inspection.status = InspectionStatus.EXTRACTION_PENDING
+    db.commit()
+    
+    # Process extraction
+    service = GeminiExtractionService()
+    try:
+        declarations = service.extract_from_images(db_inspection.image_paths)
+        
+        # Save output
+        db_inspection.extracted_data = declarations.model_dump()
+        db_inspection.status = InspectionStatus.EXTRACTION_COMPLETED
+        db.commit()
+        
+        # Immediately transition to Human Review Pending
+        db_inspection.status = InspectionStatus.HUMAN_REVIEW_PENDING
+        db.commit()
+        db.refresh(db_inspection)
+        return db_inspection
+        
+    except GeminiExtractionError as e:
+        # On any extraction failure, mark FAILED per user instruction
+        db_inspection.status = InspectionStatus.FAILED
+        db.commit()
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        db_inspection.status = InspectionStatus.FAILED
+        db.commit()
+        raise HTTPException(status_code=500, detail=f"Unexpected error during extraction: {str(e)}")
