@@ -219,3 +219,74 @@ def extract_inspection_data(inspection_id: int, db: Session = Depends(get_db)):
         db_inspection.status = InspectionStatus.FAILED
         db.commit()
         raise HTTPException(status_code=500, detail=f"Unexpected error during extraction: {str(e)}")
+
+from app.schemas.inspection import ReviewSubmission
+from app.schemas.compliance import HumanVerifiedExtraction
+from datetime import datetime
+
+@router.get("/{inspection_id}/review")
+def get_inspection_review(inspection_id: int, db: Session = Depends(get_db)):
+    db_inspection = db.query(Inspection).filter(Inspection.id == inspection_id).first()
+    if not db_inspection:
+        raise HTTPException(status_code=404, detail="Inspection not found")
+        
+    if db_inspection.status in (InspectionStatus.CREATED, InspectionStatus.IMAGES_UPLOADED, InspectionStatus.EXTRACTION_PENDING):
+        raise HTTPException(status_code=400, detail="Extraction has not completed yet.")
+        
+    return {
+        "extracted_data": db_inspection.extracted_data,
+        "verified_data": db_inspection.verified_data,
+        "status": db_inspection.status
+    }
+
+@router.post("/{inspection_id}/review", response_model=InspectionResponse)
+def submit_human_review(inspection_id: int, review: ReviewSubmission, db: Session = Depends(get_db)):
+    db_inspection = db.query(Inspection).filter(Inspection.id == inspection_id).first()
+    if not db_inspection:
+        raise HTTPException(status_code=404, detail="Inspection not found")
+        
+    if db_inspection.status != InspectionStatus.HUMAN_REVIEW_PENDING:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot submit review from status {db_inspection.status.value}. Must be HUMAN_REVIEW_PENDING."
+        )
+
+    ai_data = db_inspection.extracted_data or {}
+    changed_fields = []
+    
+    # Mapping AI schema names to canonical compliance engine names
+    ai_mapping = {
+        "manufacturer_packer_importer_details": "manufacturer_packer_importer_details",
+        "generic_name": "common_generic_name",
+        "net_quantity": "net_quantity",
+        "mrp": "mrp",
+        "manufacture_or_pack_date": "manufacture_or_pack_date",
+        "consumer_care": "consumer_care",
+        "country_of_origin": "country_of_origin"
+    }
+    
+    for canonical_field, human_value in review.model_dump().items():
+        ai_field = ai_mapping.get(canonical_field)
+        ai_val_obj = ai_data.get(ai_field, {}) if ai_data else {}
+        ai_value = ai_val_obj.get("value")
+        
+        if human_value != ai_value:
+            changed_fields.append(canonical_field)
+
+    verified = HumanVerifiedExtraction(
+        data=review.model_dump(),
+        metadata={
+            "reviewed_at": datetime.utcnow().isoformat(),
+            "changed_fields": changed_fields
+        }
+    )
+    
+    # We must explicitly force SQLAlchemy to recognize the JSON mutation
+    from sqlalchemy.orm.attributes import flag_modified
+    db_inspection.verified_data = verified.model_dump()
+    flag_modified(db_inspection, "verified_data")
+    
+    db_inspection.status = InspectionStatus.HUMAN_VERIFIED
+    db.commit()
+    db.refresh(db_inspection)
+    return db_inspection
