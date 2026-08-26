@@ -10,8 +10,9 @@ This document serves as the regulatory inventory and analysis for the **PackSure
 | **The Legal Metrology (Packaged Commodities) Rules, 2011** | Rule | 2011 | **Core Foundation.** Explicitly details declarations required on every package (Rule 6, Rule 32). |
 | **LM (PC) Amendment Rules, 2017** | Amendment | 2017 | **Relevant.** Introduced provisions for e-commerce platforms. |
 | **LM (PC) Amendment Rules, 2022** | Amendment | 2022 | **Relevant.** Changes regarding unit sale price and month/year format. |
-| **LM (PC) Amendment Rules, 2023** | Amendment | Oct 6, 2023 (Eff. Jan 2024) | **Relevant.** E-commerce loose commodities (Rule 26), unit sale price exemptions (Rule 6(11)), clothing sizes. |
-| **Proposed LM (PC) Amendment Rules, 2024**| Proposed Amendment | July 2024 | **Relevant.** Proposed updates to Rule 3 regarding packages over 25 kg. |
+| **LM (PC) Amendment Rules, 2023** | Amendment | 2023 | **Relevant.** E-commerce loose commodities (Rule 26), unit sale price exemptions (Rule 6(11)), clothing sizes. |
+| **LM (PC) Amendment Rules, 2025** | Amendment | 2025 | **Relevant.** Exempts Medical Devices (governed by Medical Devices Rules, 2017) and specific packages like pan masala. |
+| **LM (PC) Amendment Rules, 2026** | Amendment | 2026 | **Relevant.** E-commerce Country of Origin filter requirements, AEO warehouse importer declaration allowances, corporate accountability declarations. |
 
 ## 2. Regulatory Version / Amendment Matrix
 
@@ -19,10 +20,14 @@ To ensure the deterministic rule engine evaluates against the correct legal text
 
 | Provision | Original Requirement (2011 Rules) | Subsequent Amendment(s) | Current / Consolidated Requirement |
 | :--- | :--- | :--- | :--- |
-| **Rule 6(11): Unit Sale Price** | Not explicitly detailed in the original base 6(1) list. | **2022:** Required unit sale price declaration.<br>**2023:** Added proviso exempting combination/group packages. | **REQUIRES HUMAN VERIFICATION** (Need official consolidated text to confirm exact phrasing and exemptions). |
-| **Rule 26: E-commerce** | N/A (E-commerce not heavily regulated in 2011). | **2017:** E-commerce platforms must display mandatory declarations.<br>**2023:** Inserted clause (g) exempting loose commodities if consumer knows type/qty, but specific info (MRP, origin, etc.) remains mandatory. | **REQUIRES HUMAN VERIFICATION** |
-| **Rule 3: Applicability > 25kg** | Exempted packages above 25 kg or 25 liters. | **2024 (Proposed):** Mandate declarations on packages over 25 kg. | **REQUIRES HUMAN VERIFICATION** (Confirm if 2024 proposal was enacted). |
-| **Rule 32: Exemptions** | Exempts institutional/industrial consumers and packages under 10g/10ml. | **2024 (Discussion):** Reaffirmed exclusions for industrial/institutional consumers. | Original Rule 32 largely intact, but exact bounds require verification. |
+| **Rule 6(1)(a): Manufacturer/Packer/Importer** | Must declare name/address. | **2026:** Importers can make declarations at AEO bonded warehouses. | **UNCHANGED** for the package itself (declaration must exist on retail package). |
+| **Rule 6(1)(b): Generic Name** | Common/generic name required. | None | **UNCHANGED** |
+| **Rule 6(1)(c): Net Quantity** | Standard units required. | None | **UNCHANGED** |
+| **Rule 6(1)(e): MRP** | Retail sale price inclusive of taxes. | None | **UNCHANGED** |
+| **Rule 6(11): Unit Sale Price** | Not explicitly detailed. | **2022/2023:** Required, but exempts combination/group packages. | **REQUIRES HUMAN VERIFICATION** |
+| **Rule 26: E-commerce** | N/A | **2017/2023/2026:** E-commerce platforms must display mandatory declarations, including Country of Origin (deferred to 2027). | **REQUIRES HUMAN VERIFICATION** |
+| **Medical Devices (Exemption)** | General applicability. | **2025:** Exempted; now exclusively governed by Medical Devices Rules, 2017. | **SUBJECT TO LATER EXEMPTION** (Must exempt if product_category == 'medical_device'). |
+| **Rule 32: Exemptions** | Exempts institutional/industrial consumers. | **2024/2025:** Reaffirmed exclusions; exempted specific products like pan masala. | Original Rule 32 largely intact, but exact bounds require verification. |
 
 ## 3. Unresolved Ambiguities & Software Recommendations
 
@@ -37,8 +42,8 @@ Before converting these provisions into executable rules, the following ambiguit
 *   **Software Recommendation:** Do not use AI to invent or strictly validate the generic name against an arbitrary list. The AI should extract whatever is printed as the product identity. The rule engine will simply check `if extracted_generic_name is not None`. The human inspector will verify if the extracted text sufficiently serves as a generic name.
 
 ### Ambiguity 3: Amendment Consolidation
-*   **Issue:** The official sources provide the 2011 base rules and isolated amendment PDFs (2017, 2022, 2023), but no official government-stamped consolidated PDF is reliably parseable via simple URL.
-*   **Software Recommendation:** The regulatory rules in `backend/rules/` must be constructed manually by a legal domain expert who has synthesized the 2011 + 2023 texts. The JSON rule schema must include a field `source_amendment_year` (e.g., `2023`) to prove traceability for that specific condition.
+*   **Issue:** The official sources provide the 2011 base rules and isolated amendment PDFs up to 2026, but no official government-stamped consolidated PDF is reliably parseable via simple URL.
+*   **Software Recommendation:** The regulatory rules in `backend/rules/` must be constructed manually by a legal domain expert who has synthesized texts. The JSON rule schema must include a field `source_amendment_year` to prove traceability for that specific condition.
 
 ---
 *Document prepared strictly for regulatory-source ingestion and verification. No AI compliance evaluation logic is implemented here.*

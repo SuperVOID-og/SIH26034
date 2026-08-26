@@ -18,11 +18,23 @@ class RuleSeverity(str, Enum):
     MEDIUM = "medium"
     LOW = "low"
 
+class Operator(str, Enum):
+    EQUALS = "EQUALS"
+    NOT_EQUALS = "NOT_EQUALS"
+    IN = "IN"
+    EXISTS = "EXISTS"
+    NOT_NULL = "NOT_NULL"
+
+class DeterministicCondition(BaseModel):
+    field: str
+    operator: Operator
+    value: Optional[Any] = None
+
 class RegulatoryTraceability(BaseModel):
     source_document: str = Field(..., description="e.g., Legal Metrology (Packaged Commodities) Rules, 2011")
     source_rule: str = Field(..., description="e.g., Rule 6")
     source_clause: str = Field(..., description="e.g., Sub-rule (1)(a)")
-    source_amendment_year: str = Field(..., description="e.g., 2011 or 2023 Amendment")
+    source_amendment_year: str = Field(..., description="e.g., 2011 or 2026 Amendment")
 
 class RuleDefinition(BaseModel):
     rule_id: str
@@ -30,7 +42,7 @@ class RuleDefinition(BaseModel):
     description: str
     applicable_product_category: Optional[List[str]] = Field(default_factory=list)
     
-    # Traceability enforcement (Cannot create a rule without these)
+    # Traceability enforcement
     traceability: RegulatoryTraceability
     
     effective_date: str
@@ -38,15 +50,16 @@ class RuleDefinition(BaseModel):
     
     # Engine Evaluation Logic
     input_field: str = Field(..., description="The field from the extracted JSON to check")
-    condition: str = Field(..., description="The operator (e.g., 'EXISTS', 'NOT_NULL', 'GREATER_THAN')")
+    condition: Operator
     expected_value: Optional[Any] = None
     
     severity: RuleSeverity
     failure_message: str
     evidence_requirement: str
     
-    applicability_conditions: Optional[Dict[str, Any]] = None
-    exemption_conditions: Optional[Dict[str, Any]] = None
+    # Deterministic Applicability & Exemptions
+    applicability_conditions: Optional[List[DeterministicCondition]] = Field(default_factory=list)
+    exemption_conditions: Optional[List[DeterministicCondition]] = Field(default_factory=list)
     
     version: str
     status: RuleStatus
@@ -78,6 +91,5 @@ class HumanVerifiedExtraction(BaseModel):
 class ComplianceSummary(BaseModel):
     is_compliant: bool
     results: List[RuleEvaluationResult]
-    # Scoring is deliberately excluded for now; will be aggregated from `results` later
     total_rules_evaluated: int
     pending_human_reviews: int
