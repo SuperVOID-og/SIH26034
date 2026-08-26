@@ -14,8 +14,11 @@ class Inspection(Base):
     # Store the paths to local images
     image_paths = Column(JSON, default=list)
     
-    # Extracted data (raw from AI and then optionally corrected by Human)
+    # Extracted data (raw from AI)
     extracted_data = Column(JSON, nullable=True)
+    
+    # Human verified data (final source of truth for compliance)
+    verified_data = Column(JSON, nullable=True)
     
     # Compliance Engine Results
     compliance_score = Column(Integer, nullable=True)
