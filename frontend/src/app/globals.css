@@ -1,3 +1,31 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --background: #fafafa;
+  --surface: #ffffff;
+  --surface-hover: #f4f4f5;
+  --border: #e4e4e7;
+  
+  --text-primary: #18181b;
+  --text-secondary: #71717a;
+  
+  --accent: #18181b;
+  
+  --success: #059669;
+  --success-surface: #ecfdf5;
+  
+  --failure: #e11d48;
+  --failure-surface: #fff1f2;
+  
+  --review: #d97706;
+  --review-surface: #fffbeb;
+  
+  --neutral: #52525b;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+}
