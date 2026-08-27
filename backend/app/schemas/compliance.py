@@ -88,8 +88,23 @@ class HumanVerifiedExtraction(BaseModel):
     data: Dict[str, Any]
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
+class OverallAssessment(str, Enum):
+    COMPLIANT = "COMPLIANT"
+    NON_COMPLIANT = "NON_COMPLIANT"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+
+class ScoringResult(BaseModel):
+    score: int
+    assessment: OverallAssessment
+    is_provisional: bool
+    earned_weight: int
+    applicable_weight: int
+    failed_rule_count: int
+    review_required_count: int
+
 class ComplianceSummary(BaseModel):
     is_compliant: bool
     results: List[RuleEvaluationResult]
     total_rules_evaluated: int
     pending_human_reviews: int
+    scoring: Optional[ScoringResult] = None

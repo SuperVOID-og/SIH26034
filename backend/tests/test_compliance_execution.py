@@ -99,8 +99,9 @@ def test_evaluate_success():
     assert data["extracted_data"] == {"test_ai": "untouched"}
     assert data["verified_data"]["data"]["mrp"] == "100"
     
-    # Compliance score must remain None
-    assert data["compliance_score"] is None
+    # Compliance score should be 100
+    assert data["compliance_score"] == 100
+    assert data["compliance_results"]["scoring"]["assessment"] == "COMPLIANT"
 
 def test_evaluate_fail_persistence():
     # Missing MRP should cause a rule to FAIL

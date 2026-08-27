@@ -152,7 +152,7 @@ def test_backend_e2e_happy_path(mock_extract):
         assert r["status"] == "PASS"
         assert "source_document" in r["source_reference"]
         
-    assert res_eval.json()["compliance_score"] is None
+    assert res_eval.json()["compliance_score"] == 100
 
     # ---------------------------------------------------------
     # STEP 6 - FINAL RETRIEVAL
@@ -166,7 +166,7 @@ def test_backend_e2e_happy_path(mock_extract):
     assert final_data["extracted_data"]["mrp"]["value"] == "100"
     assert final_data["verified_data"]["data"]["net_quantity"] == "500g"
     assert final_data["compliance_results"]["is_compliant"] is True
-    assert final_data["compliance_score"] is None
+    assert final_data["compliance_score"] == 100
 
 @patch("app.services.extraction.gemini_service.GeminiExtractionService.extract_from_images")
 def test_backend_e2e_non_compliant(mock_extract):

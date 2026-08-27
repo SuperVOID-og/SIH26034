@@ -295,6 +295,7 @@ import json
 from copy import deepcopy
 from app.schemas.compliance import RuleDefinition
 from app.services.compliance.rule_engine import DeterministicRuleEngine
+from app.services.compliance.scoring import ComplianceScorer
 import os
 
 @router.post("/{inspection_id}/evaluate", response_model=InspectionResponse)
@@ -345,12 +346,15 @@ def evaluate_compliance(inspection_id: int, db: Session = Depends(get_db)):
         engine = DeterministicRuleEngine(rule_definitions)
         compliance_summary = engine.evaluate(extraction_for_engine)
         
+        scoring_result = ComplianceScorer.calculate_score(compliance_summary)
+        compliance_summary.scoring = scoring_result
+        
         # Persist complete ComplianceSummary into compliance_results
         db_inspection.compliance_results = compliance_summary.model_dump()
         from sqlalchemy.orm.attributes import flag_modified
         flag_modified(db_inspection, "compliance_results")
         
-        # Do not modify compliance_score yet
+        db_inspection.compliance_score = scoring_result.score
         
         db_inspection.status = InspectionStatus.COMPLIANCE_EVALUATED
         db.commit()
