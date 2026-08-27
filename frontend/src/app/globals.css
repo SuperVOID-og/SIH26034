@@ -9,8 +9,8 @@
     --surface: #18181b; /* zinc-900 */
     --surface-hover: #27272a; /* zinc-800 */
     --surface-raised: #27272a; /* zinc-800 */
-    --border: #27272a; /* zinc-800 */
-    --border-strong: #3f3f46; /* zinc-700 */
+    --border: rgba(255, 255, 255, 0.08); /* 8% white */
+    --border-strong: rgba(255, 255, 255, 0.15); /* 15% white */
     
     --text-primary: #fafafa; /* zinc-50 */
     --text-secondary: #a1a1aa; /* zinc-400 */
@@ -48,8 +48,8 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     /* Subtle atmospheric grid field */
     background-image: 
-      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
     background-size: 40px 40px;
     background-position: center top;
     background-attachment: fixed;

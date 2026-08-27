@@ -96,7 +96,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.2 }}
-                className="mb-4 p-3 rounded-lg bg-surface-raised border border-border text-[11px] text-text-secondary leading-relaxed overflow-hidden"
+                className="mb-4 p-3 rounded-lg bg-black/20 border border-transparent text-[11px] text-text-secondary leading-relaxed overflow-hidden"
               >
                 <div className="flex items-start gap-2">
                   <Info className="w-3.5 h-3.5 text-accent shrink-0 mt-0.5" />

@@ -38,7 +38,18 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Inspection command center" eyebrow="Compliance intelligence" />
+        <PageHeader 
+          title="Inspection command center" 
+          eyebrow="Compliance intelligence"
+          description="Every packaged commodity moves through extraction, human verification and a deterministic rule engine. Nothing is marked compliant by AI."
+        >
+          <Link href="/inspections/new" tabIndex={-1}>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              New inspection
+            </Button>
+          </Link>
+        </PageHeader>
         <ErrorState message={error} onRetry={loadData} />
       </div>
     )

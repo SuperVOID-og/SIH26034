@@ -37,7 +37,18 @@ export default function InspectionsPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Inspections" eyebrow="History" />
+        <PageHeader 
+          title="Inspections" 
+          eyebrow="History"
+          description="Every package that has entered the compliance pipeline, with its current stage and verdict."
+        >
+          <Link href="/inspections/new" tabIndex={-1}>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              New inspection
+            </Button>
+          </Link>
+        </PageHeader>
         <ErrorState message={error} onRetry={loadData} />
       </div>
     )
