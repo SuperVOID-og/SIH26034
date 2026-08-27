@@ -11,7 +11,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   
   const navItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'New Inspection', href: '/inspections/new', icon: Plus },
     { name: 'Inspections', href: '/inspections', icon: Package },
   ]
 
