@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "../components/layout/AppShell";
 
-const inter = Inter({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
   title: "PackSure AI",
-  description: "AI-assisted compliance inspection platform",
+  description: "Compliance Intelligence Workspace",
 };
 
 export default function RootLayout({
@@ -17,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>
+      <body className="antialiased">
         <AppShell>{children}</AppShell>
       </body>
     </html>

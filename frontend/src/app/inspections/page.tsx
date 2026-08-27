@@ -16,11 +16,9 @@ export default function InspectionsPage() {
     try {
       setIsLoading(true)
       setError(null)
-      const data = await api.listInspections(0, 500) // load a good chunk
+      const data = await api.listInspections(0, 500)
       
-      // Sort by newest first
       data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      
       setInspections(data)
     } catch (err: any) {
       setError(err.message || "Failed to load inspections.")
@@ -43,7 +41,7 @@ export default function InspectionsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <PageHeader 
         title="Inspections" 
         description="Complete history of all packaged commodity inspections" 

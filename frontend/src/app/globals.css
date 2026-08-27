@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  /* Premium Minimal Tokens */
   --background: #fafafa;
   --surface: #ffffff;
   --surface-hover: #f4f4f5;
@@ -11,8 +12,11 @@
   --text-primary: #18181b;
   --text-secondary: #71717a;
   
-  --accent: #18181b;
+  /* Restrained signature accent (indigo) */
+  --accent: #4f46e5;
+  --accent-surface: #eef2ff;
   
+  /* Semantic colors */
   --success: #059669;
   --success-surface: #ecfdf5;
   
@@ -28,4 +32,6 @@
 body {
   background-color: var(--background);
   color: var(--text-primary);
+  /* High-quality system font stack to avoid network fragility */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }

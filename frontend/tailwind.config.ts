@@ -16,6 +16,7 @@ const config: Config = {
         "text-primary": "var(--text-primary)",
         "text-secondary": "var(--text-secondary)",
         accent: "var(--accent)",
+        "accent-surface": "var(--accent-surface)",
         success: "var(--success)",
         "success-surface": "var(--success-surface)",
         failure: "var(--failure)",
