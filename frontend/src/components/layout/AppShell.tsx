@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
-import { LayoutDashboard, Package, Plus, ScanLine, ChevronLeft, ChevronRight, Info } from 'lucide-react'
+import { LayoutDashboard, Package, Plus, ScanLine, ChevronLeft, ChevronRight, Info, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '../../lib/utils'
 import { usePathname } from 'next/navigation'
@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
   const navItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -19,11 +20,63 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-transparent flex flex-col md:flex-row font-sans selection:bg-accent-surface selection:text-accent overflow-hidden">
+      
+      {/* Mobile Top Header */}
+      <div className="md:hidden flex items-center justify-between px-4 h-16 border-b border-border bg-surface/50 backdrop-blur-md shrink-0 relative z-30 w-full">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-accent text-accent-foreground shadow-[0_0_15px_rgba(20,184,166,0.3)] shrink-0">
+            <ScanLine className="w-5 h-5 stroke-[2]" />
+          </div>
+          <span className="font-semibold text-[15px] tracking-tight text-text-primary truncate">PackSure AI</span>
+        </div>
+        <button 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-2 -mr-2 text-text-secondary hover:text-text-primary shrink-0"
+        >
+          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+      </div>
+
+      {/* Mobile Dropdown Nav */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="md:hidden border-b border-border bg-surface relative z-20 w-full overflow-hidden"
+          >
+            <nav className="p-4 space-y-2">
+              {navItems.map((item) => {
+                const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      "flex items-center px-4 py-3 text-[14px] font-medium rounded-lg transition-all",
+                      isActive 
+                        ? "text-text-primary bg-surface-raised shadow-sm border border-border" 
+                        : "text-text-secondary hover:text-text-primary hover:bg-surface-hover"
+                    )}
+                  >
+                    <item.icon className={cn("w-5 h-5 mr-3 shrink-0", isActive ? "text-accent" : "text-text-secondary")} />
+                    <span className="truncate">{item.name}</span>
+                  </Link>
+                )
+              })}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop Sidebar */}
       <motion.aside 
         initial={false}
         animate={{ width: isCollapsed ? 76 : 260 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="border-r border-border bg-surface/50 backdrop-blur-md flex flex-col shrink-0 relative z-20 h-screen"
+        className="hidden md:flex border-r border-border bg-surface/50 backdrop-blur-md flex-col shrink-0 relative z-20 h-screen overflow-hidden"
       >
         <div className="h-16 flex items-center px-4 overflow-hidden shrink-0 border-b border-border/50">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-accent text-accent-foreground mr-3 shadow-[0_0_15px_rgba(20,184,166,0.3)] shrink-0">
@@ -37,10 +90,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
-                className="flex flex-col whitespace-nowrap"
+                className="flex flex-col whitespace-nowrap overflow-hidden"
               >
-                <span className="font-semibold text-[15px] leading-tight tracking-tight text-text-primary">PackSure AI</span>
-                <span className="text-[11px] font-mono tracking-wider text-text-secondary">SIH26034</span>
+                <span className="font-semibold text-[15px] leading-tight tracking-tight text-text-primary truncate">PackSure AI</span>
+                <span className="text-[11px] font-mono tracking-wider text-text-secondary truncate">SIH26034</span>
               </motion.div>
             )}
           </AnimatePresence>
@@ -48,7 +101,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         
         <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto overflow-x-hidden">
           {!isCollapsed && (
-            <div className="px-3 mb-4 text-[11px] font-semibold tracking-wider text-text-secondary uppercase">
+            <div className="px-3 mb-4 text-[11px] font-semibold tracking-wider text-text-secondary uppercase truncate">
               Workspace
             </div>
           )}
@@ -81,7 +134,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 />
                 
                 {!isCollapsed && (
-                  <span className="relative z-10 whitespace-nowrap">{item.name}</span>
+                  <span className="relative z-10 whitespace-nowrap truncate">{item.name}</span>
                 )}
               </Link>
             )
@@ -108,7 +161,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="w-full flex items-center justify-center p-2 text-text-secondary hover:text-text-primary hover:bg-surface-hover rounded-lg transition-colors"
+            className="w-full flex items-center justify-center p-2 text-text-secondary hover:text-text-primary hover:bg-surface-hover rounded-lg transition-colors shrink-0"
             title={isCollapsed ? "Expand" : "Collapse"}
           >
             {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -117,8 +170,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </motion.aside>
       
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-transparent relative z-10">
-        <div className="flex-1 p-4 md:p-8 lg:p-12 w-full max-w-[1250px] mx-auto">
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-transparent relative z-10 w-full">
+        <div className="flex-1 p-4 md:p-8 lg:p-12 w-full max-w-[1250px] mx-auto min-w-0">
           {children}
         </div>
       </main>
