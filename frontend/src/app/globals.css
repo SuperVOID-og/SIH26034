@@ -2,36 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Premium Minimal Tokens */
-  --background: #fafafa;
-  --surface: #ffffff;
-  --surface-hover: #f4f4f5;
-  --border: #e4e4e7;
-  
-  --text-primary: #18181b;
-  --text-secondary: #71717a;
-  
-  /* Restrained signature accent (indigo) */
-  --accent: #4f46e5;
-  --accent-surface: #eef2ff;
-  
-  /* Semantic colors */
-  --success: #059669;
-  --success-surface: #ecfdf5;
-  
-  --failure: #e11d48;
-  --failure-surface: #fff1f2;
-  
-  --review: #d97706;
-  --review-surface: #fffbeb;
-  
-  --neutral: #52525b;
+@layer base {
+  :root {
+    /* Lovable Dark Theme Port */
+    --background: #09090b; /* zinc-950 */
+    --surface: #18181b; /* zinc-900 */
+    --surface-hover: #27272a; /* zinc-800 */
+    --surface-raised: #27272a; /* zinc-800 */
+    --border: #27272a; /* zinc-800 */
+    --border-strong: #3f3f46; /* zinc-700 */
+    
+    --text-primary: #fafafa; /* zinc-50 */
+    --text-secondary: #a1a1aa; /* zinc-400 */
+    
+    /* Teal/Mint Accent */
+    --accent: #14b8a6; /* teal-500 */
+    --accent-foreground: #042f2e; /* teal-950 */
+    --accent-surface: rgba(20, 184, 166, 0.1);
+    
+    /* Semantic colors */
+    --success: #10b981; /* emerald-500 */
+    --success-surface: rgba(16, 185, 129, 0.1);
+    
+    --failure: #ef4444; /* red-500 */
+    --failure-surface: rgba(239, 68, 68, 0.1);
+    
+    --warning: #f59e0b; /* amber-500 */
+    --warning-surface: rgba(245, 158, 11, 0.1);
+    
+    /* We map review to warning conceptually */
+    --review: #f59e0b;
+    --review-surface: rgba(245, 158, 11, 0.1);
+    
+    --info: #3b82f6; /* blue-500 */
+    --info-surface: rgba(59, 130, 246, 0.1);
+    
+    --neutral: #71717a; /* zinc-500 */
+  }
 }
 
-body {
-  background-color: var(--background);
-  color: var(--text-primary);
-  /* High-quality system font stack to avoid network fragility */
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    /* Subtle atmospheric grid field */
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: center top;
+    background-attachment: fixed;
+  }
+}
+
+@layer utilities {
+  .font-mono-technical {
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  }
+  
+  .glow-subtle {
+    box-shadow: 0 0 20px -5px var(--accent-surface);
+  }
 }

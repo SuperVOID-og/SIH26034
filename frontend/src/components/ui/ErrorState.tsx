@@ -10,10 +10,12 @@ interface ErrorStateProps {
 
 export function ErrorState({ title = "Something went wrong", message, onRetry }: ErrorStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center p-8 text-center rounded-xl bg-failure-surface border border-failure/20">
-      <AlertCircle className="w-8 h-8 text-failure mb-3" />
-      <h3 className="text-lg font-medium text-text-primary mb-1">{title}</h3>
-      <p className="text-sm text-failure mb-4 max-w-md">{message}</p>
+    <div className="flex flex-col items-center justify-center p-8 text-center rounded-xl bg-surface border border-failure/20">
+      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-failure-surface mb-3">
+        <AlertCircle className="w-5 h-5 text-failure" />
+      </div>
+      <h3 className="text-[15px] font-medium text-text-primary mb-1 tracking-tight">{title}</h3>
+      <p className="text-[13px] text-text-secondary mb-5 max-w-md leading-relaxed">{message}</p>
       {onRetry && (
         <Button variant="outline" onClick={onRetry} size="sm">
           Try Again

@@ -7,7 +7,9 @@ import { InspectionTable } from '../components/inspection/InspectionTable'
 import { api } from '../lib/api'
 import { InspectionResponse, OverallAssessment } from '../types/api'
 import { ErrorState } from '../components/ui/ErrorState'
-import { FileText, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
+import { FileText, CheckCircle2, XCircle, AlertCircle, Plus } from 'lucide-react'
+import { Button } from '../components/ui/Button'
+import Link from 'next/link'
 
 export default function DashboardPage() {
   const [inspections, setInspections] = useState<InspectionResponse[]>([])
@@ -36,7 +38,7 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Dashboard" />
+        <PageHeader title="Inspection command center" eyebrow="Compliance intelligence" />
         <ErrorState message={error} onRetry={loadData} />
       </div>
     )
@@ -58,18 +60,29 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
-      <PageHeader title="Dashboard" description="Overview of packaged commodity inspections" />
+      <PageHeader 
+        title="Inspection command center" 
+        eyebrow="Compliance intelligence"
+        description="Every packaged commodity moves through extraction, human verification and a deterministic rule engine. Nothing is marked compliant by AI."
+      >
+        <Link href="/inspections/new" tabIndex={-1}>
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
+            New inspection
+          </Button>
+        </Link>
+      </PageHeader>
       
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-28 rounded-xl bg-border/40 animate-pulse" />
+            <div key={i} className="h-28 rounded-xl bg-surface border border-border animate-pulse" />
           ))}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard 
-            title="Total Inspections" 
+            title="Total inspections" 
             value={total} 
             icon={FileText}
           />
@@ -80,13 +93,13 @@ export default function DashboardPage() {
             iconClassName="text-success group-hover:bg-success-surface group-hover:text-success"
           />
           <StatCard 
-            title="Non-Compliant" 
+            title="Non-compliant" 
             value={nonCompliant} 
             icon={XCircle}
             iconClassName="text-failure group-hover:bg-failure-surface group-hover:text-failure"
           />
           <StatCard 
-            title="Review Required" 
+            title="Review required" 
             value={reviewRequired} 
             icon={AlertCircle}
             iconClassName="text-review group-hover:bg-review-surface group-hover:text-review"
@@ -95,7 +108,9 @@ export default function DashboardPage() {
       )}
 
       <div className="space-y-4">
-        <h2 className="text-[15px] font-medium tracking-tight text-text-primary">Recent Inspections</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-[16px] font-semibold tracking-tight text-text-primary">Recent Inspections</h2>
+        </div>
         <InspectionTable 
           inspections={recentInspections} 
           isLoading={isLoading} 
