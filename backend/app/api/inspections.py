@@ -298,6 +298,29 @@ from app.services.compliance.rule_engine import DeterministicRuleEngine
 from app.services.compliance.scoring import ComplianceScorer
 import os
 
+def normalize_context_string(value: str | None) -> str | None:
+    """
+    Normalizes frontend-friendly context strings into deterministic
+    canonical values required by the compliance rule engine.
+    """
+    if not value:
+        return None
+    val = value.strip().lower()
+    
+    if val in ["retail shelf pack", "retail", "retail_package"]:
+        return "retail"
+    if val in ["e-commerce listing pack", "e-commerce", "ecommerce"]:
+        return "ecommerce"
+    if val in ["wholesale / bulk pack", "wholesale", "bulk"]:
+        return "wholesale"
+        
+    if val in ["medical device", "medical_device", "medical equipment"]:
+        return "medical_device"
+    if val in ["packaged food", "food", "packaged_food"]:
+        return "packaged_food"
+        
+    return val.replace(" ", "_")
+
 @router.post("/{inspection_id}/evaluate", response_model=InspectionResponse)
 def evaluate_compliance(inspection_id: int, db: Session = Depends(get_db)):
     db_inspection = db.query(Inspection).filter(Inspection.id == inspection_id).first()
@@ -317,10 +340,10 @@ def evaluate_compliance(inspection_id: int, db: Session = Depends(get_db)):
         # Validate stored verified_data
         verified_extraction = HumanVerifiedExtraction(**db_inspection.verified_data)
         
-        # Inject package_context and product_category into a COPY of the metadata
+        # Inject normalized package_context and product_category into a COPY of the metadata
         metadata_copy = deepcopy(verified_extraction.metadata)
-        metadata_copy["package_context"] = db_inspection.package_context
-        metadata_copy["product_category"] = db_inspection.product_category
+        metadata_copy["package_context"] = normalize_context_string(db_inspection.package_context)
+        metadata_copy["product_category"] = normalize_context_string(db_inspection.product_category)
         
         # We create a new copy with the updated metadata for the engine
         extraction_for_engine = HumanVerifiedExtraction(
