@@ -1,11 +1,15 @@
+import logging
 import os
+import mimetypes
 from typing import List
-from PIL import Image
 from google import genai
+from google.genai import types
 from pydantic import ValidationError
 
 from app.schemas.extraction import PackageDeclarations
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 class GeminiExtractionError(Exception):
     pass
@@ -26,17 +30,31 @@ class GeminiExtractionService:
         if not relative_image_paths:
             raise GeminiExtractionError("No images provided for extraction.")
 
-        # Load images
-        pil_images = []
+        # Load images from disk as raw bytes. Never fetch via HTTP.
+        image_parts: List[types.Part] = []
         for rel_path in relative_image_paths:
-            # We enforce relative paths in the DB
-            abs_path = os.path.join(settings.LOCAL_STORAGE_DIR, rel_path.replace("/", os.sep))
+            # Enforce relative path — resolve against storage root only.
+            # Strip any leading slash to prevent traversal attacks.
+            safe_rel = rel_path.lstrip("/").lstrip("\\")
+            abs_path = os.path.normpath(
+                os.path.join(settings.LOCAL_STORAGE_DIR, safe_rel.replace("/", os.sep))
+            )
+            # Guard against path traversal escaping the storage root
+            storage_root = os.path.normpath(settings.LOCAL_STORAGE_DIR)
+            if not abs_path.startswith(storage_root):
+                raise GeminiExtractionError(f"Path traversal detected: {rel_path}")
             if not os.path.exists(abs_path):
                 raise GeminiExtractionError(f"Image not found on disk: {rel_path}")
             try:
-                img = Image.open(abs_path)
-                # Keep reference to the relative path so the prompt can map it if we wanted to
-                pil_images.append(img)
+                # Detect MIME type from extension; default to jpeg
+                mime_type = mimetypes.guess_type(abs_path)[0] or "image/jpeg"
+                with open(abs_path, "rb") as f:
+                    image_bytes = f.read()
+                image_parts.append(
+                    types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
+                )
+            except GeminiExtractionError:
+                raise
             except Exception as e:
                 raise GeminiExtractionError(f"Failed to load image {rel_path}: {str(e)}")
 
@@ -49,44 +67,35 @@ class GeminiExtractionService:
         2. Do NOT infer, guess, or hallucinate missing values.
         3. Do NOT determine legal compliance.
         4. Do NOT invent Legal Metrology requirements.
-        5. If a field is missing or unreadable, set it to null.
-        6. For 'source_images', simply provide an empty list if you cannot determine which image it came from, 
-           or you can leave it to the application to populate.
-        7. Provide an honest confidence level (HIGH, MEDIUM, LOW, UNKNOWN).
+        5. If a field is missing or unreadable, set value to null and confidence to UNKNOWN.
+        6. For 'source_images', provide an empty list — the application will populate it.
+        7. Provide an honest confidence level: HIGH, MEDIUM, LOW, or UNKNOWN.
         """
 
         try:
-            # Use structured output
+            # Use response_json_schema with the config dict form.
+            # response_json_schema accepts a standard JSON Schema dict and does NOT
+            # trigger automatic function calling (AFC) detection in google-genai v2.x.
             response = self.client.models.generate_content(
                 model=self.model_name,
-                contents=[prompt, *pil_images],
+                contents=[prompt, *image_parts],
                 config={
                     "response_mime_type": "application/json",
-                    "response_schema": PackageDeclarations
+                    "response_json_schema": PackageDeclarations.model_json_schema(),
                 }
             )
-            
-            # The SDK with response_schema should return the parsed object in response.parsed
-            # or a JSON string in response.text. Let's parse it safely.
-            if hasattr(response, "parsed") and response.parsed:
-                parsed_data = response.parsed
-                if isinstance(parsed_data, PackageDeclarations):
-                    result = parsed_data
-                elif isinstance(parsed_data, dict):
-                    result = PackageDeclarations(**parsed_data)
-                else:
-                    raise GeminiExtractionError("Unexpected parsed type from Gemini.")
-            else:
-                # Fallback to parsing text
-                result = PackageDeclarations.model_validate_json(response.text)
-                
-            # Post-process: Gemini might not reliably know the relative path strings for `source_images`. 
-            # We will conservatively assign all provided relative paths to any field that was found, 
-            # unless we ask Gemini to map indices, which is often unreliable. 
-            # Per instruction: "If multiple images support the same field, either: support a list... or choose the strongest".
-            # We'll just attach all source images to non-null fields to ensure evidence linkage is safe.
-            for field_name, field_obj in result.__dict__.items():
-                if hasattr(field_obj, "value") and field_obj.value is not None:
+
+            # Parse the returned JSON text
+            if not response.text:
+                raise GeminiExtractionError("Gemini returned an empty response.")
+
+            result = PackageDeclarations.model_validate_json(response.text)
+
+            # Attach all relative source paths to fields that returned a value
+            # (Gemini cannot reliably identify which image each value came from)
+            for field_name in result.model_fields:
+                field_obj = getattr(result, field_name, None)
+                if field_obj is not None and hasattr(field_obj, "value") and field_obj.value is not None:
                     if not field_obj.source_images:
                         field_obj.source_images = relative_image_paths
 
@@ -94,5 +103,10 @@ class GeminiExtractionService:
 
         except ValidationError as ve:
             raise GeminiExtractionError(f"Gemini output failed schema validation: {str(ve)}")
+        except GeminiExtractionError:
+            raise
         except Exception as e:
-            raise GeminiExtractionError(f"Gemini API error: {str(e)}")
+            # Log class and message for server-side diagnostics.
+            # Never log the API key or secrets.
+            logger.error("Gemini extraction failed: %s: %s", type(e).__name__, str(e))
+            raise GeminiExtractionError(f"Gemini API error ({type(e).__name__}): {str(e)}")
