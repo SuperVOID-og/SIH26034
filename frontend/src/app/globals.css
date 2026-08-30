@@ -148,4 +148,44 @@
   }
 }
 
+/* ====================================================
+   PRINT STYLES (Stage H)
+   ==================================================== */
+
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm 16mm 14mm 16mm;
+  }
+  
+  html, body {
+    background-color: white !important;
+    background-image: none !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  /* Prevent awkward page breaks inside major report sections */
+  .print-avoid-break {
+    break-inside: avoid;
+  }
+
+  /* Force all scroll containers to expand naturally in print to fix PDF scrollbar & clipping */
+  html, body, main, div {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    scrollbar-width: none !important;
+  }
+  
+  ::-webkit-scrollbar {
+    display: none !important;
+  }
+}
+
 

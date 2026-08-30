@@ -24,7 +24,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen bg-transparent flex flex-col md:flex-row font-sans selection:bg-accent-surface selection:text-accent overflow-hidden">
       
       {/* Mobile Top Header */}
-      <div className="md:hidden flex items-center justify-between px-4 h-16 border-b border-border bg-surface/50 backdrop-blur-md shrink-0 relative z-30 w-full">
+      <div className="md:hidden flex items-center justify-between px-4 h-16 border-b border-border bg-surface/50 backdrop-blur-md shrink-0 relative z-30 w-full no-print">
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-accent text-accent-foreground shadow-[0_0_15px_rgba(20,184,166,0.3)] shrink-0">
             <ScanLine className="w-5 h-5 stroke-[2]" />
@@ -46,7 +46,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden border-b border-border bg-surface relative z-20 w-full overflow-hidden"
+            className="md:hidden border-b border-border bg-surface relative z-20 w-full overflow-hidden no-print"
           >
             <nav className="p-4 space-y-2">
               {navItems.map((item) => {
@@ -78,7 +78,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         initial={false}
         animate={{ width: isCollapsed ? 76 : 260 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="hidden md:flex border-r border-border bg-surface/50 backdrop-blur-md flex-col shrink-0 relative z-20 h-screen overflow-hidden"
+        className="hidden md:flex border-r border-border bg-surface/50 backdrop-blur-md flex-col shrink-0 relative z-20 h-screen overflow-hidden no-print"
       >
         <div className="h-16 flex items-center px-4 overflow-hidden shrink-0 border-b border-border/50">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-accent text-accent-foreground mr-3 shadow-[0_0_15px_rgba(20,184,166,0.3)] shrink-0">

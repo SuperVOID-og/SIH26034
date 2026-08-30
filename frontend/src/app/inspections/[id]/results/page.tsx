@@ -17,7 +17,7 @@ import {
 import { ScoreDial } from '../../../../components/compliance/ScoreDial'
 import { RuleResultCard } from '../../../../components/compliance/RuleResultCard'
 import { EvidenceDrawer } from '../../../../components/inspection/EvidenceDrawer'
-import { Loader2, ArrowLeft, Plus, ShieldCheck, Scale, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react'
+import { Loader2, ArrowLeft, Plus, ShieldCheck, Scale, CheckCircle2, XCircle, AlertTriangle, FileText } from 'lucide-react'
 import { cn } from '../../../../lib/utils'
 
 export default function ResultsPage({ params }: { params: { id: string } }) {
@@ -267,14 +267,22 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
               onClick={() => router.push('/inspections')}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to inspections
+              Back
             </Button>
             <Button 
+              variant="outline"
               className="flex-1"
               onClick={() => router.push('/inspections/new')}
             >
               <Plus className="w-4 h-4 mr-2" />
-              New inspection
+              New
+            </Button>
+            <Button 
+              className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+              onClick={() => router.push(`/inspections/${inspectionId}/report`)}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Open report
             </Button>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { InspectionResponse } from "../types/api";
+import { InspectionResponse, StructuredReport } from "../types/api";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
@@ -90,5 +90,9 @@ export const api = {
     return fetchAPI<{ deleted: boolean, inspection_id: number }>(`/api/inspections/${id}`, {
       method: "DELETE",
     });
+  },
+
+  getInspectionReport: async (id: number): Promise<StructuredReport> => {
+    return fetchAPI<StructuredReport>(`/api/inspections/${id}/report`);
   }
 };

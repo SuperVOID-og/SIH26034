@@ -108,3 +108,42 @@ export interface InspectionResponse {
   created_at: string;
   updated_at: string | null;
 }
+
+export interface VerifiedDeclarationsReport {
+  manufacturer_packer_importer_details: string | null;
+  generic_name: string | null;
+  net_quantity: string | null;
+  mrp: string | null;
+  manufacture_or_pack_date: string | null;
+  consumer_care: string | null;
+  country_of_origin: string | null;
+}
+
+export interface InspectionMetadata {
+  id: number;
+  product_category: string | null;
+  package_context: string | null;
+  created_at: string;
+  updated_at: string | null;
+  status: InspectionStatus;
+  image_paths: string[];
+}
+
+export interface RuleSummaryCounts {
+  passed: number;
+  failed: number;
+  not_applicable: number;
+  requires_human_review: number;
+  total_rules: number;
+}
+
+export interface StructuredReport {
+  report_version: string;
+  generated_at: string;
+  inspection: InspectionMetadata;
+  verified_declarations: VerifiedDeclarationsReport;
+  assessment: ScoringResult;
+  rule_evaluations: RuleEvaluationResult[];
+  summary_counts: RuleSummaryCounts;
+  disclaimer: string;
+}
