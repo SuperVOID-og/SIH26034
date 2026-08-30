@@ -431,3 +431,22 @@ def evaluate_compliance(inspection_id: int, db: Session = Depends(get_db)):
         db_inspection.status = InspectionStatus.FAILED
         db.commit()
         raise HTTPException(status_code=500, detail=f"Compliance evaluation failed: {str(e)}")
+
+from app.schemas.report import StructuredReport
+from app.services.report_service import ReportService
+
+@router.get("/{inspection_id}/report", response_model=StructuredReport, summary="Generate structured inspection report")
+def get_inspection_report(inspection_id: int, db: Session = Depends(get_db)):
+    """
+    Generates an authoritative, structured JSON report from a finalized inspection.
+    The report combines inspection metadata, human-verified declarations, deterministic scoring,
+    rule evaluations, and full regulatory traceability. No AI generation is performed at this stage.
+    """
+    db_inspection = db.query(Inspection).filter(Inspection.id == inspection_id).first()
+    if not db_inspection:
+        raise HTTPException(status_code=404, detail="Inspection not found")
+        
+    # The ReportService handles all strict validation, extraction, and assembly without mutating the DB record.
+    report = ReportService.generate_report(db_inspection)
+    
+    return report
