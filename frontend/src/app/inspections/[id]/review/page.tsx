@@ -12,6 +12,8 @@ import { ErrorState } from '../../../../components/ui/ErrorState'
 import { api } from '../../../../lib/api'
 import { useRouter } from 'next/navigation'
 import { cn, getMediaUrl } from '../../../../lib/utils'
+import { CancelInspectionAction } from '../../../../components/inspection/CancelInspectionAction'
+import { useLeaveGuard } from '../../../../components/inspection/LeaveInspectionGuard'
 import { Loader2, RotateCcw, AlertCircle } from 'lucide-react'
 import { ConfidenceLevel, InspectionStatus } from '../../../../types/api'
 
@@ -141,6 +143,15 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
     return count
   }, 0)
 
+  const { registerGuard, unregisterGuard } = useLeaveGuard()
+
+  useEffect(() => {
+    if (extractedData) {
+      registerGuard(inspectionId, "HUMAN_REVIEW_PENDING", modifiedCount > 0)
+    }
+    return () => unregisterGuard()
+  }, [extractedData, inspectionId, modifiedCount, registerGuard, unregisterGuard])
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -148,7 +159,9 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
           title="Human verification" 
           eyebrow={`Stage 04 · INS-${inspectionId.toString().padStart(4, '0')}`}
           description="You are the source of truth. Correct anything the model misread — the rule engine only ever sees your verified values."
-        />
+        >
+          <CancelInspectionAction inspectionId={inspectionId} status={"HUMAN_REVIEW_PENDING"} />
+        </PageHeader>
         <StageRail current="review" />
         <div className="flex h-64 items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-text-secondary">
@@ -167,7 +180,9 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
           title="Human verification" 
           eyebrow={`Stage 04 · INS-${inspectionId.toString().padStart(4, '0')}`}
           description="You are the source of truth. Correct anything the model misread — the rule engine only ever sees your verified values."
-        />
+        >
+          <CancelInspectionAction inspectionId={inspectionId} status={"HUMAN_REVIEW_PENDING"} />
+        </PageHeader>
         <StageRail current="review" />
         <ErrorState 
           title="Failed to load review" 
@@ -184,7 +199,9 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
         title="Human verification" 
         eyebrow={`Stage 04 · INS-${inspectionId.toString().padStart(4, '0')}`}
         description="You are the source of truth. Correct anything the model misread — the rule engine only ever sees your verified values."
-      />
+      >
+        <CancelInspectionAction inspectionId={inspectionId} status={"HUMAN_REVIEW_PENDING"} />
+      </PageHeader>
       
       <StageRail current="review" />
 
@@ -311,7 +328,7 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
                             placeholder="Enter the verified value"
                             className={cn(
                               "min-h-[80px] bg-surface hover:bg-surface-elevated transition-colors border-border/60 focus:border-accent shadow-sm pr-24",
-                              isModified ? "border-accent/40 bg-accent/5" : ""
+                              isModified ? "border-accent bg-accent-surface text-text-primary" : ""
                             )}
                           />
                         ) : (
@@ -323,7 +340,7 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
                             placeholder="Enter the verified value"
                             className={cn(
                               "bg-surface hover:bg-surface-elevated transition-colors border-border/60 focus:border-accent shadow-sm pr-24",
-                              isModified ? "border-accent/40 bg-accent/5" : ""
+                              isModified ? "border-accent bg-accent-surface text-text-primary" : ""
                             )}
                           />
                         )}

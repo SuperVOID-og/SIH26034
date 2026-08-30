@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { cn } from '../../lib/utils'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { LeaveGuardProvider, GuardedLink } from '../inspection/LeaveInspectionGuard'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -19,7 +20,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   ]
 
   return (
-    <div className="min-h-screen bg-transparent flex flex-col md:flex-row font-sans selection:bg-accent-surface selection:text-accent overflow-hidden">
+    <LeaveGuardProvider>
+      <div className="min-h-screen bg-transparent flex flex-col md:flex-row font-sans selection:bg-accent-surface selection:text-accent overflow-hidden">
       
       {/* Mobile Top Header */}
       <div className="md:hidden flex items-center justify-between px-4 h-16 border-b border-border bg-surface/50 backdrop-blur-md shrink-0 relative z-30 w-full">
@@ -50,7 +52,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {navItems.map((item) => {
                 const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
                 return (
-                  <Link
+                  <GuardedLink
                     key={item.name}
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
@@ -63,7 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   >
                     <item.icon className={cn("w-5 h-5 mr-3 shrink-0", isActive ? "text-accent" : "text-text-secondary")} />
                     <span className="truncate">{item.name}</span>
-                  </Link>
+                  </GuardedLink>
                 )
               })}
             </nav>
@@ -108,7 +110,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
             return (
-              <Link
+              <GuardedLink
                 key={item.name}
                 href={item.href}
                 title={isCollapsed ? item.name : undefined}
@@ -136,7 +138,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {!isCollapsed && (
                   <span className="relative z-10 whitespace-nowrap truncate">{item.name}</span>
                 )}
-              </Link>
+              </GuardedLink>
             )
           })}
         </nav>
@@ -176,5 +178,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </main>
     </div>
+    </LeaveGuardProvider>
   )
 }

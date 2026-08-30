@@ -72,6 +72,45 @@ def update_inspection(inspection_id: int, inspection_in: InspectionUpdate, db: S
     db.refresh(db_inspection)
     return db_inspection
 
+@router.delete("/{inspection_id}")
+def delete_inspection(inspection_id: int, db: Session = Depends(get_db)):
+    db_inspection = db.query(Inspection).filter(Inspection.id == inspection_id).first()
+    if not db_inspection:
+        raise HTTPException(status_code=404, detail="Inspection not found")
+        
+    # Guard: completed inspections cannot be deleted as drafts
+    if db_inspection.status in (InspectionStatus.COMPLIANCE_EVALUATED, InspectionStatus.COMPLETED):
+        raise HTTPException(
+            status_code=409, 
+            detail="Completed inspections cannot be deleted as drafts."
+        )
+        
+    # Storage Cleanup
+    import os
+    import shutil
+    from app.core.config import settings
+    
+    # Defensively validate path to prevent arbitrary deletion
+    storage_root = os.path.abspath(os.path.join(settings.LOCAL_STORAGE_DIR, "inspections"))
+    target_dir = os.path.abspath(os.path.join(storage_root, str(inspection_id)))
+    
+    if not target_dir.startswith(storage_root) or target_dir == storage_root:
+        raise HTTPException(status_code=500, detail="Invalid storage path resolution.")
+        
+    if os.path.exists(target_dir):
+        try:
+            shutil.rmtree(target_dir)
+        except Exception as e:
+            # Do not delete DB record if file cleanup fails
+            raise HTTPException(status_code=500, detail=f"Failed to delete associated files: {str(e)}")
+
+    # Clean DB record
+    db.delete(db_inspection)
+    db.commit()
+    
+    return {"deleted": True, "inspection_id": inspection_id}
+
+
 import os
 import uuid
 import shutil
@@ -166,10 +205,14 @@ def extract_inspection_data(inspection_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Inspection not found")
         
     # Pre-flight state check
-    if db_inspection.status != InspectionStatus.IMAGES_UPLOADED:
+    if db_inspection.status not in (
+        InspectionStatus.IMAGES_UPLOADED, 
+        InspectionStatus.EXTRACTION_PENDING, 
+        InspectionStatus.FAILED
+    ):
         raise HTTPException(
             status_code=400, 
-            detail=f"Cannot extract data from status: {db_inspection.status.value}. Must be IMAGES_UPLOADED."
+            detail=f"Cannot extract data from status: {db_inspection.status.value}. Must be IMAGES_UPLOADED, EXTRACTION_PENDING, or FAILED."
         )
         
     # Pre-flight data checks

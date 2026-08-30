@@ -5,6 +5,8 @@ import { InspectionResponse } from '../../types/api'
 import { LoadingSkeleton } from '../ui/LoadingSkeleton'
 import { EmptyState } from '../ui/EmptyState'
 import { FileText } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { getInspectionResumeRoute } from '../../lib/inspection-routing'
 
 interface InspectionTableProps {
   inspections: InspectionResponse[]
@@ -13,6 +15,8 @@ interface InspectionTableProps {
 }
 
 export function InspectionTable({ inspections, isLoading, emptyMessage = "No inspections found" }: InspectionTableProps) {
+  const router = useRouter()
+  
   if (isLoading) {
     return (
       <Card className="overflow-hidden">
@@ -59,7 +63,16 @@ export function InspectionTable({ inspections, isLoading, emptyMessage = "No ins
             const score = inspection.compliance_score
 
             return (
-              <tr key={inspection.id} className="hover:bg-surface-raised transition-colors group">
+              <tr 
+                key={inspection.id} 
+                className="hover:bg-surface-raised transition-colors group cursor-pointer"
+                onClick={() => {
+                  const route = getInspectionResumeRoute(inspection.status, inspection.id)
+                  if (route) {
+                    router.push(route)
+                  }
+                }}
+              >
                 <td className="px-5 py-4 font-mono text-[12px] font-medium text-text-primary">
                   {shortId}
                 </td>

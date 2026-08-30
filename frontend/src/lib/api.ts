@@ -84,5 +84,11 @@ export const api = {
     return fetchAPI<InspectionResponse>(`/api/inspections/${id}/evaluate`, {
       method: "POST",
     });
+  },
+
+  deleteInspection: async (id: number): Promise<{ deleted: boolean, inspection_id: number }> => {
+    return fetchAPI<{ deleted: boolean, inspection_id: number }>(`/api/inspections/${id}`, {
+      method: "DELETE",
+    });
   }
 };

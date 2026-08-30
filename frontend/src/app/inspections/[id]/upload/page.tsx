@@ -7,7 +7,9 @@ import { Button } from '../../../../components/ui/Button'
 import { UploadCloud, X, AlertCircle } from 'lucide-react'
 import { api } from '../../../../lib/api'
 import { useRouter } from 'next/navigation'
-import { cn } from '../../../../lib/utils'
+import { cn, getMediaUrl } from '../../../../lib/utils'
+import { CancelInspectionAction } from '../../../../components/inspection/CancelInspectionAction'
+import { useLeaveGuard } from '../../../../components/inspection/LeaveInspectionGuard'
 
 export default function UploadPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -26,6 +28,13 @@ export default function UploadPage({ params }: { params: { id: string } }) {
       Object.values(previews).forEach(url => URL.revokeObjectURL(url))
     }
   }, [previews])
+
+  const { registerGuard, unregisterGuard } = useLeaveGuard()
+
+  useEffect(() => {
+    registerGuard(inspectionId, "CREATED", false) // Upload page implies early draft
+    return () => unregisterGuard()
+  }, [inspectionId, registerGuard, unregisterGuard])
 
   const validateAndAddFiles = (newFiles: File[]) => {
     setError(null)
@@ -138,7 +147,9 @@ export default function UploadPage({ params }: { params: { id: string } }) {
         title="Capture the package" 
         eyebrow={`Stage 02 · INS-${inspectionId.toString().padStart(4, '0')}`}
         description="Clear, straight-on shots of every printed panel give the extraction step the best chance of reading each declaration."
-      />
+      >
+        <CancelInspectionAction inspectionId={inspectionId} status={"CREATED"} />
+      </PageHeader>
       
       <div className="min-w-0 overflow-hidden">
         <StageRail current="upload" />

@@ -9,6 +9,8 @@ import { ErrorState } from '../../../../components/ui/ErrorState'
 import { api } from '../../../../lib/api'
 import { useRouter } from 'next/navigation'
 import { cn } from '../../../../lib/utils'
+import { CancelInspectionAction } from '../../../../components/inspection/CancelInspectionAction'
+import { useLeaveGuard } from '../../../../components/inspection/LeaveInspectionGuard'
 import { 
   InspectionResponse, 
   InspectionStatus, 
@@ -100,6 +102,15 @@ export default function EvaluatePage({ params }: { params: { id: string } }) {
     loadInspection()
   }, [])
 
+  const { registerGuard, unregisterGuard } = useLeaveGuard()
+
+  useEffect(() => {
+    if (inspection) {
+      registerGuard(inspectionId, inspection.status, false)
+    }
+    return () => unregisterGuard()
+  }, [inspection, inspectionId, registerGuard, unregisterGuard])
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -107,7 +118,9 @@ export default function EvaluatePage({ params }: { params: { id: string } }) {
           title="Compliance evaluation" 
           eyebrow={`Stage 05 · INS-${inspectionId.toString().padStart(4, '0')}`}
           description="The deterministic rule engine evaluates the human-verified declarations against the active Legal Metrology rule set."
-        />
+        >
+          <CancelInspectionAction inspectionId={inspectionId} status={inspection?.status || "HUMAN_VERIFIED"} />
+        </PageHeader>
         <StageRail current="evaluate" />
         <div className="flex h-64 items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-text-secondary">
@@ -126,7 +139,9 @@ export default function EvaluatePage({ params }: { params: { id: string } }) {
           title="Compliance evaluation" 
           eyebrow={`Stage 05 · INS-${inspectionId.toString().padStart(4, '0')}`}
           description="The deterministic rule engine evaluates the human-verified declarations against the active Legal Metrology rule set."
-        />
+        >
+          <CancelInspectionAction inspectionId={inspectionId} status={"HUMAN_VERIFIED"} />
+        </PageHeader>
         <StageRail current="evaluate" />
         <ErrorState 
           title="Failed to load inspection" 
@@ -205,10 +220,12 @@ export default function EvaluatePage({ params }: { params: { id: string } }) {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 min-w-0">
       <PageHeader 
-        title="Compliance evaluation" 
+        title="Rule engine evaluation" 
         eyebrow={`Stage 05 · INS-${inspectionId.toString().padStart(4, '0')}`}
-        description="The deterministic rule engine evaluates the human-verified declarations against the active Legal Metrology rule set."
-      />
+        description="The deterministic rule engine evaluates the verified declarations against Legal Metrology regulations."
+      >
+        <CancelInspectionAction inspectionId={inspectionId} status={inspection?.status || "HUMAN_VERIFIED"} />
+      </PageHeader>
       
       <StageRail current="evaluate" />
 

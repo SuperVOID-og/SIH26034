@@ -11,6 +11,8 @@ import { useRouter } from 'next/navigation'
 import { ConfidencePill } from '../../../../components/ui/ConfidencePill'
 import { cn, getMediaUrl } from '../../../../lib/utils'
 import { ErrorState } from '../../../../components/ui/ErrorState'
+import { CancelInspectionAction } from '../../../../components/inspection/CancelInspectionAction'
+import { useLeaveGuard } from '../../../../components/inspection/LeaveInspectionGuard'
 
 const FIELD_LABELS: Record<keyof Omit<PackageDeclarations, 'raw_text_dump'>, string> = {
   manufacturer_packer_importer_details: "Manufacturer / Packer / Importer",
@@ -85,10 +87,21 @@ export default function ExtractPage({ params }: { params: { id: string } }) {
     loadInspection()
   }, [])
 
+  const { registerGuard, unregisterGuard } = useLeaveGuard()
+
+  useEffect(() => {
+    if (inspection) {
+      registerGuard(inspectionId, inspection.status, false)
+    }
+    return () => unregisterGuard()
+  }, [inspection, inspectionId, registerGuard, unregisterGuard])
+
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="AI extraction" eyebrow={`Stage 03 · INS-${inspectionId.toString().padStart(4, '0')}`} description="The model transcribes what is printed on the pack. It makes no legal determination — that comes later, from the deterministic rule engine." />
+        <PageHeader title="AI extraction" eyebrow={`Stage 03 · INS-${inspectionId.toString().padStart(4, '0')}`} description="The model transcribes what is printed on the pack. It makes no legal determination — that comes later, from the deterministic rule engine.">
+          <CancelInspectionAction inspectionId={inspectionId} status={inspection?.status || "EXTRACTION_PENDING"} />
+        </PageHeader>
         <div className="min-w-0 overflow-hidden"><StageRail current="extract" /></div>
         <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>
       </div>
@@ -98,7 +111,9 @@ export default function ExtractPage({ params }: { params: { id: string } }) {
   if (error && !inspection) {
     return (
       <div className="space-y-6">
-        <PageHeader title="AI extraction" eyebrow={`Stage 03 · INS-${inspectionId.toString().padStart(4, '0')}`} description="The model transcribes what is printed on the pack. It makes no legal determination — that comes later, from the deterministic rule engine." />
+        <PageHeader title="AI extraction" eyebrow={`Stage 03 · INS-${inspectionId.toString().padStart(4, '0')}`} description="The model transcribes what is printed on the pack. It makes no legal determination — that comes later, from the deterministic rule engine.">
+          <CancelInspectionAction inspectionId={inspectionId} status={"EXTRACTION_PENDING"} />
+        </PageHeader>
         <div className="min-w-0 overflow-hidden"><StageRail current="extract" /></div>
         <ErrorState message={error} onRetry={loadInspection} />
       </div>
@@ -120,7 +135,9 @@ export default function ExtractPage({ params }: { params: { id: string } }) {
         title="AI extraction" 
         eyebrow={`Stage 03 · INS-${inspectionId.toString().padStart(4, '0')}`}
         description="The model transcribes what is printed on the pack. It makes no legal determination — that comes later, from the deterministic rule engine."
-      />
+      >
+        <CancelInspectionAction inspectionId={inspectionId} status={inspection?.status || "EXTRACTION_PENDING"} />
+      </PageHeader>
       <div className="min-w-0 overflow-hidden">
         <StageRail current="extract" />
       </div>
