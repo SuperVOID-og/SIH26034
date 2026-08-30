@@ -16,7 +16,7 @@ export function PageHeader({ title, eyebrow, description, children }: PageHeader
             {eyebrow}
           </p>
         )}
-        <h1 className="text-[28px] md:text-[32px] font-semibold tracking-tight text-text-primary leading-tight">
+        <h1 className="font-sora text-[28px] md:text-[32px] font-semibold tracking-tight text-text-primary leading-tight">
           {title}
         </h1>
         {description && (

@@ -4,21 +4,22 @@
 
 @layer base {
   :root {
-    /* Lovable Dark Theme Port */
-    --background: #09090b; /* zinc-950 */
-    --surface: #18181b; /* zinc-900 */
-    --surface-hover: #27272a; /* zinc-800 */
-    --surface-raised: #27272a; /* zinc-800 */
-    --border: rgba(255, 255, 255, 0.08); /* 8% white */
-    --border-strong: rgba(255, 255, 255, 0.15); /* 15% white */
+    /* PackSure Graphite-Navy Theme */
+    --background: #0D1117; 
+    --surface: #121821; 
+    --surface-hover: #1C2633; 
+    --surface-raised: #18212C; 
+    --surface-muted: #0F141C;
+    --border: rgba(148, 163, 184, 0.11); 
+    --border-strong: rgba(148, 163, 184, 0.25); 
     
-    --text-primary: #fafafa; /* zinc-50 */
-    --text-secondary: #a1a1aa; /* zinc-400 */
+    --text-primary: #F4F7FB; 
+    --text-secondary: #AAB6C5; 
     
     /* Teal/Mint Accent */
-    --accent: #14b8a6; /* teal-500 */
-    --accent-foreground: #042f2e; /* teal-950 */
-    --accent-surface: rgba(20, 184, 166, 0.1);
+    --accent: #2DD4BF; 
+    --accent-foreground: #042f2e; 
+    --accent-surface: rgba(45, 212, 191, 0.1);
     
     /* Semantic colors */
     --success: #10b981; /* emerald-500 */
@@ -58,21 +59,50 @@
     
     /* F.5A Refined Background System */
     /* 1. Base dark matte (above)
-       2. Soft ambient radial light pools
+       2. Soft ambient radial light pools: Teal top-left, Blue center-right, Violet bottom-right
        3. Subtle technical grid
     */
-    background-image: 
-      radial-gradient(circle at 15% 50%, rgba(20, 184, 166, 0.015), transparent 25vw),
-      radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.015), transparent 25vw),
-      linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
-    background-position: 0 0, 0 0, center top, center top;
-    background-attachment: fixed;
-    background-repeat: no-repeat, no-repeat, repeat, repeat;
+    /* Background gradients moved to layout.tsx */
   }
 }
 
+@layer utilities {
+  .ps-ambient-teal {
+    animation: float-teal 25s ease-in-out infinite alternate;
+  }
+  .ps-ambient-blue {
+    animation: float-blue 32s ease-in-out infinite alternate;
+  }
+  .ps-ambient-violet {
+    animation: float-violet 28s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes float-teal {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.03; }
+  50% { transform: translate(3vw, 2vh) scale(1.05); opacity: 0.05; }
+  100% { transform: translate(-2vw, 4vh) scale(0.95); opacity: 0.04; }
+}
+
+@keyframes float-blue {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.04; }
+  50% { transform: translate(-4vw, -2vh) scale(1.08); opacity: 0.06; }
+  100% { transform: translate(2vw, -4vh) scale(0.98); opacity: 0.03; }
+}
+
+@keyframes float-violet {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.02; }
+  50% { transform: translate(-3vw, 3vh) scale(1.02); opacity: 0.04; }
+  100% { transform: translate(3vw, -2vh) scale(0.96); opacity: 0.03; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-ambient-teal,
+  .ps-ambient-blue,
+  .ps-ambient-violet {
+    animation: none !important;
+  }
+}
 @layer utilities {
   .font-mono-technical {
     font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;

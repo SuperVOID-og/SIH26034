@@ -13,6 +13,7 @@ const config: Config = {
         surface: "var(--surface)",
         "surface-hover": "var(--surface-hover)",
         "surface-raised": "var(--surface-raised)",
+        "surface-muted": "var(--surface-muted)",
         border: "var(--border)",
         "border-strong": "var(--border-strong)",
         "text-primary": "var(--text-primary)",
@@ -33,6 +34,9 @@ const config: Config = {
         neutral: "var(--neutral)",
       },
       fontFamily: {
+        sans: ['var(--font-inter)', 'sans-serif'],
+        sora: ['var(--font-sora)', 'sans-serif'],
+        ibm: ['var(--font-ibm)', 'sans-serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Consolas', '"Liberation Mono"', 'monospace'],
       },
       transitionDuration: {

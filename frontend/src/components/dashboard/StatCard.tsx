@@ -19,7 +19,7 @@ export function StatCard({ title, value, icon: Icon, subtitle, className, iconCl
       className
     )}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[13px] font-medium text-text-secondary">{title}</h3>
+        <h3 className="text-[14px] font-medium text-text-secondary">{title}</h3>
         {Icon && (
           <div className={cn(
             "flex items-center justify-center w-8 h-8 rounded-md bg-background text-text-secondary transition-colors group-hover:bg-surface group-hover:shadow-[0_0_15px_rgba(20,184,166,0.15)]",
@@ -30,10 +30,10 @@ export function StatCard({ title, value, icon: Icon, subtitle, className, iconCl
         )}
       </div>
       <div className="mt-auto flex items-baseline gap-2">
-        <span className="text-3xl font-mono tracking-tight text-text-primary">{value}</span>
+        <span className="text-4xl font-sora font-semibold tracking-tight text-text-primary">{value}</span>
       </div>
       {subtitle && (
-        <p className="mt-1 text-[13px] text-text-secondary">{subtitle}</p>
+        <p className="mt-1 text-[14px] font-medium text-text-secondary">{subtitle}</p>
       )}
     </Card>
   )

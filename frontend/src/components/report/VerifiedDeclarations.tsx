@@ -19,9 +19,9 @@ export function VerifiedDeclarations({ declarations }: VerifiedDeclarationsProps
 
   return (
     <div className="flex flex-col gap-6 print-avoid-break">
-      <div className="border-b border-border/50 pb-2">
-        <h3 className="text-xl font-semibold tracking-tight text-text-primary">Human-verified declarations</h3>
-        <p className="text-sm text-text-secondary mt-1 max-w-2xl">
+      <div className="border-b border-[#D4DAE3] pb-2">
+        <h3 className="text-xl font-semibold tracking-tight text-[#161B24] font-sora">Human-verified declarations</h3>
+        <p className="text-sm text-[#667085] mt-1 max-w-2xl">
           The following values were verified by a human inspector and form the sole basis of the deterministic rule evaluation.
         </p>
       </div>
@@ -33,14 +33,14 @@ export function VerifiedDeclarations({ declarations }: VerifiedDeclarationsProps
           
           return (
             <div key={key} className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#667085]">
                 {label}
               </span>
               <div className="text-[15px] leading-relaxed">
                 {isNull ? (
-                  <span className="text-text-secondary/60 italic font-medium">Not recorded</span>
+                  <span className="text-[#667085] italic font-medium">Not recorded</span>
                 ) : (
-                  <span className="text-text-primary font-medium">{value}</span>
+                  <span className="text-[#161B24] font-medium">{value}</span>
                 )}
               </div>
             </div>
@@ -48,9 +48,9 @@ export function VerifiedDeclarations({ declarations }: VerifiedDeclarationsProps
         })}
       </div>
 
-      <div className="mt-2 p-4 rounded-lg bg-info/5 border border-info/20 flex gap-3 text-info">
-        <ShieldCheck className="w-5 h-5 shrink-0" />
-        <p className="text-sm leading-relaxed text-info">
+      <div className="mt-2 p-4 rounded-lg bg-blue-50 border border-blue-200 flex gap-3 text-blue-800">
+        <ShieldCheck className="w-5 h-5 shrink-0 text-blue-700" />
+        <p className="text-sm leading-relaxed text-blue-800">
           <strong>Trust Note:</strong> Compliance evaluation strictly uses the human-verified declarations shown above, not the raw AI extraction data.
         </p>
       </div>

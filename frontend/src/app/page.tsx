@@ -44,7 +44,7 @@ export default function DashboardPage() {
           description="Every packaged commodity moves through extraction, human verification and a deterministic rule engine. Nothing is marked compliant by AI."
         >
           <Link href="/inspections/new" tabIndex={-1}>
-            <Button>
+            <Button className="bg-[#4F8CFF] hover:bg-[#5B9CFF] text-white border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_0_15px_rgba(79,140,255,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_0_20px_rgba(79,140,255,0.4)]">
               <Plus className="w-4 h-4 mr-2" />
               New inspection
             </Button>
@@ -67,7 +67,7 @@ export default function DashboardPage() {
         description="Every packaged commodity moves through extraction, human verification and a deterministic rule engine. Nothing is marked compliant by AI."
       >
         <Link href="/inspections/new" tabIndex={-1}>
-          <Button>
+          <Button className="bg-[#4F8CFF] hover:bg-[#5B9CFF] text-white border-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_0_15px_rgba(79,140,255,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_0_20px_rgba(79,140,255,0.4)]">
             <Plus className="w-4 h-4 mr-2" />
             New inspection
           </Button>
@@ -87,24 +87,29 @@ export default function DashboardPage() {
             value={stats.total_inspections} 
             icon={FileText}
             subtitle={stats.drafts > 0 ? `${stats.drafts} Drafts / Unfinished` : undefined}
+            className="bg-[#121821] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] bg-gradient-to-br from-info/5 to-transparent"
+            iconClassName="text-info group-hover:bg-info/10 group-hover:text-info group-hover:shadow-[0_0_15px_rgba(59,130,246,0.15)]"
           />
           <StatCard 
             title="Compliant" 
             value={stats.compliant} 
             icon={CheckCircle2}
-            iconClassName="text-success group-hover:bg-success-surface group-hover:text-success"
+            className="bg-[#121821] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] bg-gradient-to-br from-success/5 to-transparent"
+            iconClassName="text-success group-hover:bg-success/10 group-hover:text-success group-hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]"
           />
           <StatCard 
             title="Non-compliant" 
             value={stats.non_compliant} 
             icon={XCircle}
-            iconClassName="text-failure group-hover:bg-failure-surface group-hover:text-failure"
+            className="bg-[#121821] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] bg-gradient-to-br from-failure/5 to-transparent"
+            iconClassName="text-failure group-hover:bg-failure/10 group-hover:text-failure group-hover:shadow-[0_0_15px_rgba(239,68,68,0.15)]"
           />
           <StatCard 
             title="Review required" 
             value={stats.review_required} 
             icon={AlertCircle}
-            iconClassName="text-review group-hover:bg-review-surface group-hover:text-review"
+            className="bg-[#121821] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] bg-gradient-to-br from-warning/5 to-transparent"
+            iconClassName="text-warning group-hover:bg-warning/10 group-hover:text-warning group-hover:shadow-[0_0_15px_rgba(245,158,11,0.15)]"
           />
         </div>
       )}

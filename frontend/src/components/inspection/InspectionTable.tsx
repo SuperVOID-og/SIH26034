@@ -42,7 +42,7 @@ export function InspectionTable({ inspections, isLoading, emptyMessage = "No ins
   return (
     <Card className="overflow-x-auto">
       <table className="w-full text-left whitespace-nowrap border-collapse">
-        <thead className="text-[11px] font-mono tracking-wider text-text-secondary uppercase bg-background border-b border-border">
+        <thead className="text-[12px] font-sans font-semibold tracking-wide text-text-secondary uppercase bg-surface-muted border-b border-border-strong">
           <tr>
             <th className="px-5 py-4 font-medium">Inspection ID</th>
             <th className="px-5 py-4 font-medium">Category</th>
@@ -52,7 +52,7 @@ export function InspectionTable({ inspections, isLoading, emptyMessage = "No ins
             <th className="px-5 py-4 font-medium text-right">Score</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-border text-[13px]">
+        <tbody className="divide-y divide-border/50 text-[14px] font-medium bg-surface">
           {inspections.map((inspection) => {
             const shortId = `INS-${inspection.id.toString().padStart(4, '0')}`
             const date = new Date(inspection.created_at).toLocaleDateString(undefined, {
@@ -75,20 +75,20 @@ export function InspectionTable({ inspections, isLoading, emptyMessage = "No ins
                   }
                 }}
               >
-                <td className="px-5 py-4 font-mono text-[12px] font-medium text-text-primary">
+                <td className="px-5 py-4 font-mono text-[13px] font-medium text-text-primary">
                   {shortId}
                 </td>
                 <td className="px-5 py-4 text-text-secondary">
                   {inspection.product_category || '—'}
                 </td>
-                <td className="px-5 py-4 text-text-secondary font-mono text-[12px]">
+                <td className="px-5 py-4 text-text-secondary font-mono text-[13px]">
                   {date}
                 </td>
                 <td className="px-5 py-4">
                   <StatusBadge status={inspection.status} />
                 </td>
                 <td className="px-5 py-4">
-                  {assessment ? <StatusBadge status={assessment} /> : <span className="text-text-secondary font-mono text-[12px]">—</span>}
+                  {assessment ? <StatusBadge status={assessment} /> : <span className="text-text-secondary font-mono text-[13px]">—</span>}
                 </td>
                 <td className="px-5 py-4 font-medium text-text-primary text-right">
                   {score !== null && score !== undefined ? (
@@ -99,9 +99,9 @@ export function InspectionTable({ inspections, isLoading, emptyMessage = "No ins
                           style={{ width: `${Math.min(Math.max(score, 0), 100)}%` }} 
                         />
                       </div>
-                      <span className="font-mono text-[12px] tabular-nums w-6">{score}</span>
+                      <span className="font-mono text-[13px] tabular-nums w-6">{score}</span>
                     </div>
-                  ) : <span className="text-text-secondary font-mono text-[12px]">—</span>}
+                  ) : <span className="text-text-secondary font-mono text-[13px]">—</span>}
                 </td>
               </tr>
             )

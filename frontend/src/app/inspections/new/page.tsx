@@ -77,7 +77,7 @@ export default function NewInspectionPage() {
 
             <div className="space-y-8">
               <div>
-                <h3 className="text-[14px] font-medium text-text-primary mb-4">Product Category</h3>
+                <h3 className="text-[16px] font-sora font-semibold text-text-primary mb-4">Product Category</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {CATEGORIES.map(c => {
                     const isSelected = category === c.id
@@ -95,7 +95,7 @@ export default function NewInspectionPage() {
                         aria-pressed={isSelected}
                       >
                         <c.icon className="w-4 h-4 shrink-0" />
-                        <span className={cn("text-[13px] font-medium leading-tight whitespace-normal break-words", isSelected ? "text-text-primary" : "")}>{c.id}</span>
+                        <span className={cn("text-[15px] font-medium leading-tight whitespace-normal break-words", isSelected ? "text-text-primary" : "")}>{c.id}</span>
                       </button>
                     )
                   })}
@@ -103,7 +103,7 @@ export default function NewInspectionPage() {
               </div>
 
               <div>
-                <h3 className="text-[14px] font-medium text-text-primary mb-4">Package Context</h3>
+                <h3 className="text-[16px] font-sora font-semibold text-text-primary mb-4">Package Context</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {CONTEXTS.map(c => {
                     const isSelected = context === c.id
@@ -121,7 +121,7 @@ export default function NewInspectionPage() {
                         aria-pressed={isSelected}
                       >
                         <c.icon className="w-4 h-4 shrink-0" />
-                        <span className={cn("text-[13px] font-medium leading-tight whitespace-normal break-words", isSelected ? "text-text-primary" : "")}>{c.id}</span>
+                        <span className={cn("text-[15px] font-medium leading-tight whitespace-normal break-words", isSelected ? "text-text-primary" : "")}>{c.id}</span>
                       </button>
                     )
                   })}
@@ -130,7 +130,7 @@ export default function NewInspectionPage() {
             </div>
 
             <div className="mt-10 pt-6 border-t border-border flex justify-end">
-              <Button onClick={handleSubmit} isLoading={isSubmitting} className="w-full sm:w-auto">
+              <Button onClick={handleSubmit} isLoading={isSubmitting} className="w-full sm:w-auto text-[15px] font-semibold">
                 Create inspection
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
@@ -141,43 +141,43 @@ export default function NewInspectionPage() {
         {/* Right Column */}
         <div className="w-full lg:w-80 shrink-0">
           <Card className="p-5 bg-surface-raised border-border-strong h-full">
-            <h3 className="text-[14px] font-medium text-text-primary mb-1">What happens next</h3>
-            <p className="text-[12px] text-text-secondary mb-6">A fixed, auditable sequence — no shortcuts.</p>
+            <h3 className="text-[15px] font-sora font-semibold text-text-primary mb-1">What happens next</h3>
+            <p className="text-[14px] text-text-secondary mb-6">A fixed, auditable sequence — no shortcuts.</p>
             
             <div className="space-y-5">
               <div className="flex gap-3">
                 <div className="text-[11px] font-mono font-medium text-text-secondary mt-0.5 shrink-0">2</div>
                 <div>
-                  <h4 className="text-[13px] font-medium text-text-primary mb-1">Images</h4>
-                  <p className="text-[12px] text-text-secondary leading-relaxed">Capture the principal display and back panels.</p>
+                  <h4 className="text-[15px] font-medium text-text-primary mb-1">Images</h4>
+                  <p className="text-[14px] text-text-secondary leading-relaxed">Capture the principal display and back panels.</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <div className="text-[11px] font-mono font-medium text-text-secondary mt-0.5 shrink-0">3</div>
                 <div>
-                  <h4 className="text-[13px] font-medium text-text-primary mb-1">AI extraction</h4>
-                  <p className="text-[12px] text-text-secondary leading-relaxed">Printed declarations are read and structured.</p>
+                  <h4 className="text-[15px] font-medium text-text-primary mb-1">AI extraction</h4>
+                  <p className="text-[14px] text-text-secondary leading-relaxed">Printed declarations are read and structured.</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <div className="text-[11px] font-mono font-medium text-text-secondary mt-0.5 shrink-0">4</div>
                 <div>
-                  <h4 className="text-[13px] font-medium text-text-primary mb-1">Human review</h4>
-                  <p className="text-[12px] text-text-secondary leading-relaxed">You confirm or correct each extracted value.</p>
+                  <h4 className="text-[15px] font-medium text-text-primary mb-1">Human review</h4>
+                  <p className="text-[14px] text-text-secondary leading-relaxed">You confirm or correct each extracted value.</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <div className="text-[11px] font-mono font-medium text-text-secondary mt-0.5 shrink-0">5</div>
                 <div>
-                  <h4 className="text-[13px] font-medium text-text-primary mb-1">Compliance</h4>
-                  <p className="text-[12px] text-text-secondary leading-relaxed">The deterministic engine issues the verdict.</p>
+                  <h4 className="text-[15px] font-medium text-text-primary mb-1">Compliance</h4>
+                  <p className="text-[14px] text-text-secondary leading-relaxed">The deterministic engine issues the verdict.</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <div className="text-[11px] font-mono font-medium text-text-secondary mt-0.5 shrink-0">6</div>
                 <div>
-                  <h4 className="text-[13px] font-medium text-text-primary mb-1">Results</h4>
-                  <p className="text-[12px] text-text-secondary leading-relaxed">Rule outcomes and regulatory evidence are shown.</p>
+                  <h4 className="text-[15px] font-medium text-text-primary mb-1">Results</h4>
+                  <p className="text-[14px] text-text-secondary leading-relaxed">Rule outcomes and regulatory evidence are shown.</p>
                 </div>
               </div>
             </div>
