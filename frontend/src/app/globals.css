@@ -82,3 +82,70 @@
     box-shadow: 0 0 20px -5px var(--accent-surface);
   }
 }
+
+/* ====================================================
+   SCANNER ANIMATION KEYFRAMES (F.5C)
+   Defined here so they are guaranteed to load and
+   are not subject to dangerouslySetInnerHTML timing.
+   ==================================================== */
+
+@keyframes ps-scan-beam {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(1500%); opacity: 0; }
+}
+
+@keyframes ps-scan-wave {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(300%); }
+}
+
+@keyframes ps-grain-shift {
+  0%   { transform: translate(0px, 0px) scale(1.05); }
+  25%  { transform: translate(-2px, 1px) scale(1.05); }
+  50%  { transform: translate(1px, -2px) scale(1.05); }
+  75%  { transform: translate(2px, 1px) scale(1.05); }
+  100% { transform: translate(0px, 0px) scale(1.05); }
+}
+
+.ps-scan-beam {
+  animation: ps-scan-beam 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.ps-scan-wave {
+  animation: ps-scan-wave 2.8s linear infinite;
+}
+
+.ps-grain-shift {
+  animation: ps-grain-shift 0.5s steps(2, end) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-scan-beam,
+  .ps-scan-wave,
+  .ps-grain-shift {
+    animation: none !important;
+    display: none !important;
+  }
+}
+
+/* Tracer — decorative connection line from scanner gap to declaration card */
+@keyframes ps-tracer-flash {
+  0%   { transform: scaleX(0); opacity: 0; transform-origin: right center; }
+  35%  { transform: scaleX(1); opacity: 1; transform-origin: right center; }
+  65%  { transform: scaleX(1); opacity: 1; transform-origin: left center; }
+  100% { transform: scaleX(0); opacity: 0; transform-origin: left center; }
+}
+
+.ps-tracer {
+  animation: ps-tracer-flash 0.45s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-tracer {
+    display: none !important;
+  }
+}
+
+

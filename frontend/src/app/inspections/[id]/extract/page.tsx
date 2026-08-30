@@ -3,7 +3,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { PageHeader } from '../../../../components/layout/PageHeader'
 import { StageRail } from '../../../../components/inspection/StageRail'
-import { Card } from '../../../../components/ui/Card'
 import { Button } from '../../../../components/ui/Button'
 import { ArrowRight, AlertCircle, FileImage, ShieldCheck, Loader2 } from 'lucide-react'
 import { api } from '../../../../lib/api'
@@ -33,7 +32,7 @@ export default function ExtractPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null)
   
   const hasTriggeredExtraction = useRef(false)
-  const [extractionPhase, setExtractionPhase] = useState("Preparing package images...")
+  const [extractionPhase, setExtractionPhase] = useState("Preparing package image")
 
   const loadInspection = async () => {
     try {
@@ -41,8 +40,6 @@ export default function ExtractPage({ params }: { params: { id: string } }) {
       setError(null)
       const data = await api.getInspection(inspectionId)
       setInspection(data)
-      
-      // Auto-trigger extraction if needed
       if (
         (data.status === InspectionStatus.IMAGES_UPLOADED || data.status === InspectionStatus.EXTRACTION_PENDING) && 
         !hasTriggeredExtraction.current
@@ -63,23 +60,19 @@ export default function ExtractPage({ params }: { params: { id: string } }) {
       setIsExtracting(true)
       setIsLoading(false)
       setError(null)
-
-      // Cycle phases for UX
       const phases = [
-        "Preparing package images...",
-        "Reading printed declarations...",
-        "Structuring extracted information...",
-        "Preparing human review..."
+        "Preparing package image",
+        "Reading visible declarations",
+        "Structuring extracted fields",
+        "Finalizing extraction"
       ]
       let currentPhase = 0
       const phaseInterval = setInterval(() => {
         currentPhase = (currentPhase + 1) % phases.length
         setExtractionPhase(phases[currentPhase])
-      }, 3000)
-
+      }, 2500)
       const result = await api.extractData(inspectionId)
       clearInterval(phaseInterval)
-      
       setInspection(result)
       setIsExtracting(false)
     } catch (err: any) {
@@ -95,17 +88,9 @@ export default function ExtractPage({ params }: { params: { id: string } }) {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader 
-          title="AI extraction" 
-          eyebrow={`Stage 03 · INS-${inspectionId.toString().padStart(4, '0')}`}
-          description="The model transcribes what is printed on the pack. It makes no legal determination — that comes later, from the deterministic rule engine."
-        />
-        <div className="min-w-0 overflow-hidden">
-          <StageRail current="extract" />
-        </div>
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-accent" />
-        </div>
+        <PageHeader title="AI extraction" eyebrow={`Stage 03 · INS-${inspectionId.toString().padStart(4, '0')}`} description="The model transcribes what is printed on the pack. It makes no legal determination — that comes later, from the deterministic rule engine." />
+        <div className="min-w-0 overflow-hidden"><StageRail current="extract" /></div>
+        <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>
       </div>
     )
   }
@@ -113,14 +98,8 @@ export default function ExtractPage({ params }: { params: { id: string } }) {
   if (error && !inspection) {
     return (
       <div className="space-y-6">
-        <PageHeader 
-          title="AI extraction" 
-          eyebrow={`Stage 03 · INS-${inspectionId.toString().padStart(4, '0')}`}
-          description="The model transcribes what is printed on the pack. It makes no legal determination — that comes later, from the deterministic rule engine."
-        />
-        <div className="min-w-0 overflow-hidden">
-          <StageRail current="extract" />
-        </div>
+        <PageHeader title="AI extraction" eyebrow={`Stage 03 · INS-${inspectionId.toString().padStart(4, '0')}`} description="The model transcribes what is printed on the pack. It makes no legal determination — that comes later, from the deterministic rule engine." />
+        <div className="min-w-0 overflow-hidden"><StageRail current="extract" /></div>
         <ErrorState message={error} onRetry={loadInspection} />
       </div>
     )
@@ -136,168 +115,283 @@ export default function ExtractPage({ params }: { params: { id: string } }) {
   const firstImage = getMediaUrl(inspection?.image_paths?.[0])
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 min-w-0">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 min-w-0 pb-20">
       <PageHeader 
         title="AI extraction" 
         eyebrow={`Stage 03 · INS-${inspectionId.toString().padStart(4, '0')}`}
         description="The model transcribes what is printed on the pack. It makes no legal determination — that comes later, from the deterministic rule engine."
       />
-      
       <div className="min-w-0 overflow-hidden">
         <StageRail current="extract" />
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 min-w-0">
-        {/* Left Column - Workspace */}
-        <div className="flex-1 space-y-6 min-w-0">
-          <Card className={cn(
-            "p-4 sm:p-6 w-full flex flex-col h-full overflow-hidden transition-colors duration-500",
-            isExtracting ? "border-accent shadow-[0_0_20px_rgba(20,184,166,0.05)]" : ""
-          )}>
-            <div className="flex items-center justify-between mb-6 shrink-0">
-              <h3 className="text-[14px] font-medium text-text-primary">Analysis workspace</h3>
-              <div className="flex items-center gap-2">
-                {isExtracting ? (
-                  <>
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
-                    </span>
-                    <span className="text-[11px] font-medium uppercase tracking-wider text-accent">Reading</span>
-                  </>
-                ) : isComplete ? (
-                  <>
-                    <ShieldCheck className="w-4 h-4 text-success" />
-                    <span className="text-[11px] font-medium uppercase tracking-wider text-success">Complete</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="w-4 h-4 text-text-secondary" />
-                    <span className="text-[11px] font-medium uppercase tracking-wider text-text-secondary">Failed</span>
-                  </>
-                )}
+      <div className="flex flex-col xl:flex-row gap-8 min-w-0 mt-8">
+
+        {/* ============================================================
+            LEFT: SCANNER CHAMBER
+            The outer container has overflow-hidden for rounded corners.
+            All children are absolute-positioned so they stack cleanly.
+            z-index layering:
+              image wrapper     → z: 0
+              grain             → z: 10  (normal blend — always visible)
+              wave              → z: 20  (normal blend — always visible)
+              beam              → z: 30  (normal blend — bright white)
+              corner markers    → z: 40
+              status pill       → z: 50
+              error overlay     → z: 60
+            ============================================================ */}
+        <div className="w-full xl:w-1/2 shrink-0">
+          <div
+            className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden bg-black/60 shadow-xl transition-colors duration-500"
+            style={{ border: isExtracting ? '1px solid rgba(45,212,191,0.35)' : '1px solid rgba(255,255,255,0.08)' }}
+          >
+            {/* Corner markers */}
+            {(['tl','tr','bl','br'] as const).map(c => (
+              <div
+                key={c}
+                className="absolute pointer-events-none transition-colors duration-500"
+                style={{
+                  zIndex: 40,
+                  top:    c.startsWith('t') ? 16 : undefined,
+                  bottom: c.startsWith('b') ? 16 : undefined,
+                  left:   c.endsWith('l')   ? 16 : undefined,
+                  right:  c.endsWith('r')   ? 16 : undefined,
+                  width: 24,
+                  height: 24,
+                  borderTop:    c.startsWith('t') ? `1px solid ${isExtracting ? 'rgba(45,212,191,0.6)' : 'rgba(255,255,255,0.2)'}` : undefined,
+                  borderBottom: c.startsWith('b') ? `1px solid ${isExtracting ? 'rgba(45,212,191,0.6)' : 'rgba(255,255,255,0.2)'}` : undefined,
+                  borderLeft:   c.endsWith('l')   ? `1px solid ${isExtracting ? 'rgba(45,212,191,0.6)' : 'rgba(255,255,255,0.2)'}` : undefined,
+                  borderRight:  c.endsWith('r')   ? `1px solid ${isExtracting ? 'rgba(45,212,191,0.6)' : 'rgba(255,255,255,0.2)'}` : undefined,
+                  borderTopLeftRadius:     c === 'tl' ? 8 : undefined,
+                  borderTopRightRadius:    c === 'tr' ? 8 : undefined,
+                  borderBottomLeftRadius:  c === 'bl' ? 8 : undefined,
+                  borderBottomRightRadius: c === 'br' ? 8 : undefined,
+                }}
+              />
+            ))}
+
+            {/* Package image — z: 0 */}
+            {firstImage ? (
+              <div className="absolute inset-0 flex items-center justify-center p-8" style={{ zIndex: 0 }}>
+                <img
+                  src={firstImage}
+                  alt="Package reference"
+                  className="max-w-full max-h-full object-contain transition-all duration-500"
+                  style={isExtracting ? { filter: 'brightness(1.05) contrast(1.08) saturate(0.90)' } : {}}
+                />
               </div>
-            </div>
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-text-secondary" style={{ zIndex: 0 }}>
+                <FileImage className="w-10 h-10 mb-4 opacity-40" />
+                <p className="text-[14px]">No reference image available</p>
+              </div>
+            )}
 
-            <div className="flex-1 relative rounded-lg border border-border bg-surface-raised overflow-hidden min-h-[300px] flex items-center justify-center">
-              {firstImage ? (
-                <div className={cn(
-                  "relative w-full h-full flex items-center justify-center",
-                  isExtracting && "animate-pulse opacity-80"
-                )}>
-                  <img 
-                    src={firstImage} 
-                    alt="Package reference" 
-                    className="max-w-full max-h-[500px] object-contain"
-                  />
-                  {isExtracting && (
-                    <div className="absolute inset-0 bg-accent/5 backdrop-blur-[1px] flex flex-col items-center justify-center pointer-events-none transition-all duration-300">
-                      <div className="bg-surface/90 px-4 py-2 rounded-full border border-accent/30 shadow-lg mb-2">
-                        <span className="text-[12px] font-medium text-accent animate-pulse">{extractionPhase}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center text-text-secondary">
-                  <FileImage className="w-8 h-8 mb-3 opacity-50" />
-                  <p className="text-[13px]">No reference image available</p>
-                </div>
-              )}
-            </div>
+            {/* ---- SCANNING OVERLAYS (only while isExtracting) ---- */}
+            {isExtracting && (
+              <>
+                {/*
+                  LAYER 1 — GRAIN (z: 10)
+                  SVG fractalNoise rendered as a background-image.
+                  mix-blend-mode: NORMAL so it renders on top of any image color.
+                  opacity 0.18 — perceptibly grainy over white, yellow, and dark areas.
+                  ps-grain-shift moves background-position to animate grain life.
+                */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 pointer-events-none ps-grain-shift"
+                  style={{
+                    zIndex: 10,
+                    opacity: 0.18,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+                    backgroundSize: '200px 200px',
+                  }}
+                />
 
-            {error && (
-              <div className="mt-4 p-3 rounded-lg bg-failure-surface border border-failure/30 flex items-start gap-3 shrink-0">
-                <AlertCircle className="w-4 h-4 text-failure shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] text-text-primary mb-2 break-words">{error}</p>
-                  <Button size="sm" onClick={() => {
-                    hasTriggeredExtraction.current = false
-                    runExtraction()
-                  }}>
-                    Try again
-                  </Button>
+                {/*
+                  LAYER 2 — BROAD WAVE (z: 20)
+                  A 45%-tall gradient band.
+                  mix-blend-mode: NORMAL — always visible regardless of image color.
+                  White/teal at ~0.22 opacity makes it clearly visible over
+                  bright yellow/white packaging areas.
+                  ps-scan-wave moves it from top to bottom via translateY.
+                */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-x-0 pointer-events-none ps-scan-wave"
+                  style={{
+                    zIndex: 20,
+                    top: 0,
+                    height: '45%',
+                    background: 'linear-gradient(to bottom, transparent 0%, rgba(45,212,191,0.18) 30%, rgba(255,255,255,0.22) 50%, rgba(45,212,191,0.18) 70%, transparent 100%)',
+                  }}
+                />
+
+                {/*
+                  LAYER 3 — SCAN BEAM (z: 30)
+                  A 3px bright white line with strong teal glow.
+                  Travels at same speed as the wave via ps-scan-beam.
+                  mix-blend-mode: NORMAL — visible on all backgrounds.
+                */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-x-0 pointer-events-none ps-scan-beam"
+                  style={{
+                    zIndex: 30,
+                    top: 0,
+                    height: '3px',
+                    background: 'linear-gradient(to right, transparent 0%, rgba(255,255,255,0.9) 20%, white 50%, rgba(255,255,255,0.9) 80%, transparent 100%)',
+                    boxShadow: '0 0 12px 4px rgba(45,212,191,0.7), 0 0 30px 10px rgba(45,212,191,0.3)',
+                  }}
+                />
+              </>
+            )}
+
+            {/* Status pill — z: 50 */}
+            {isExtracting && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2" style={{ zIndex: 50 }}>
+                <div className="bg-surface/80 backdrop-blur-md px-4 py-2 rounded-full border border-accent/20 flex items-center gap-3 shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 motion-reduce:animate-none"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+                  </span>
+                  <span className="text-[12px] font-mono tracking-wide text-text-primary uppercase" aria-live="polite">
+                    {extractionPhase}
+                  </span>
                 </div>
               </div>
             )}
-          </Card>
-        </div>
 
-        {/* Right Column - Extracted Declarations */}
-        <div className="w-full lg:w-[1.1fr] shrink-0">
-          <Card className="p-4 sm:p-6 h-full flex flex-col min-w-0">
-            <h3 className="text-[14px] font-medium text-text-primary mb-1">Extracted declarations</h3>
-            <p className="text-[12px] text-text-secondary mb-6">Values as printed — unverified, non-authoritative.</p>
-            
-            <div className="flex-1 space-y-4">
-              {isExtracting ? (
-                // Skeletons
-                Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="p-3.5 rounded-lg border border-border bg-background animate-pulse">
-                    <div className="h-3 w-32 bg-surface-raised rounded mb-3"></div>
-                    <div className="h-4 w-3/4 bg-surface-raised rounded mb-2"></div>
-                  </div>
-                ))
-              ) : extractedData ? (
-                // Real Data
-                Object.entries(FIELD_LABELS).map(([key, label], index) => {
-                  const field = extractedData[key as keyof typeof FIELD_LABELS]
-                  const hasValue = field && field.value && field.value.trim() !== ''
-                  
-                  return (
-                    <div 
-                      key={key} 
-                      className="p-3.5 rounded-lg border border-border bg-background transition-all hover:border-border-strong min-w-0 animate-in fade-in slide-in-from-bottom-2"
-                      style={{ animationDelay: `${index * 120}ms`, animationFillMode: 'both' }}
-                    >
-                      <div className="flex items-center justify-between mb-2 gap-2">
-                        <span className="text-[11px] font-medium uppercase tracking-wider text-text-secondary truncate">{label}</span>
-                        {field?.confidence && (
-                          <ConfidencePill level={field.confidence} className="shrink-0" />
-                        )}
-                      </div>
-                      
-                      {hasValue ? (
-                        <p className="text-[13px] font-medium text-text-primary whitespace-pre-wrap break-words">
-                          {field.value}
-                        </p>
-                      ) : (
-                        <p className="text-[13px] text-text-secondary italic">
-                          Not detected on the pack
-                        </p>
-                      )}
-                    </div>
-                  )
-                })
-              ) : (
-                // Not Started or Failed
-                <div className="h-full flex flex-col items-center justify-center text-center py-10">
-                  <div className="w-10 h-10 rounded-full bg-surface border border-border/50 flex items-center justify-center mb-3">
-                    <ShieldCheck className="w-4 h-4 text-text-secondary" />
-                  </div>
-                  <p className="text-[13px] text-text-secondary">
-                    {!isExtracting && !error ? "Waiting to start extraction" : "No declarations extracted"}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {isComplete && (
-              <div className="mt-8 pt-6 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-500 delay-500 fill-mode-both">
-                <div className="text-[12px] text-text-secondary">
-                  <p className="font-medium text-text-primary mb-0.5">Extraction complete</p>
-                  <p>Confidence reflects extraction certainty, not legality.</p>
-                </div>
-                <Button 
-                  onClick={() => router.push(`/inspections/${inspectionId}/review`)}
-                  className="w-full sm:w-auto shrink-0"
-                >
-                  Start human review
-                  <ArrowRight className="w-4 h-4 ml-2" />
+            {/* Error overlay — z: 60 */}
+            {error && (
+              <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 animate-in fade-in" style={{ zIndex: 60 }}>
+                <AlertCircle className="w-10 h-10 text-failure mb-4" />
+                <p className="text-[14px] text-text-primary text-center mb-6 max-w-md">{error}</p>
+                <Button variant="secondary" onClick={() => {
+                  hasTriggeredExtraction.current = false
+                  runExtraction()
+                }}>
+                  Retry Extraction
                 </Button>
               </div>
             )}
-          </Card>
+          </div>
+        </div>
+
+        {/* ============================================================
+            RIGHT: EXTRACTION STREAM
+            ============================================================ */}
+        <div className="flex-1 min-w-0">
+          <div className="mb-6">
+            <h3 className="text-[15px] font-medium text-text-primary">Extracted Declarations</h3>
+            <p className="text-[13px] text-text-secondary mt-1">Values exactly as transcribed from the packaging. Unverified.</p>
+          </div>
+          
+          <div className="space-y-3 relative">
+            {isExtracting ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="p-4 rounded-xl border border-border bg-surface/30">
+                  <div className="h-3 w-32 bg-border/50 rounded-sm mb-4"></div>
+                  <div className="h-4 w-3/4 bg-border/50 rounded-sm mb-2"></div>
+                </div>
+              ))
+            ) : extractedData ? (
+              Object.entries(FIELD_LABELS).map(([key, label], index) => {
+                const field = extractedData[key as keyof typeof FIELD_LABELS]
+                const hasValue = field && field.value && field.value.trim() !== ''
+                const delay = index * 80
+
+                return (
+                  <div key={key} className="relative group">
+                    {/*
+                      TRACER — desktop only (xl+), hidden on mobile.
+                      Absolutely positioned to the LEFT of this card,
+                      bridging the scanner gap. Originates from the right side
+                      of the gap and travels left→card direction.
+                      Does NOT touch the package image. Pure layout decoration.
+                    */}
+                    <div
+                      aria-hidden="true"
+                      className="hidden xl:block absolute top-1/2 right-[calc(100%+4px)] -translate-y-1/2 h-px w-14 bg-accent pointer-events-none ps-tracer"
+                      style={{ animationDelay: `${delay}ms`, opacity: 0 }}
+                    />
+
+                    {/* Declaration card */}
+                    <div
+                      className={cn(
+                        "relative p-4 rounded-xl border border-border/80 bg-surface/60 hover:bg-surface hover:border-border transition-colors",
+                        "animate-in fade-in slide-in-from-left-2 motion-reduce:slide-in-from-left-0 motion-reduce:duration-0"
+                      )}
+                      style={{
+                        animationDelay: `${delay}ms`,
+                        animationDuration: '280ms',
+                        animationFillMode: 'both',
+                      }}
+                    >
+                      {/* Left accent edge */}
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-white/5 rounded-l-xl group-hover:bg-white/10 transition-colors" />
+
+                      {/* Field label + confidence pill row */}
+                      <div className="flex items-start sm:items-center justify-between gap-4 mb-3">
+                        <span className="text-[11px] font-mono font-medium uppercase tracking-[0.05em] text-text-secondary">
+                          {label}
+                        </span>
+                        {field?.confidence && (
+                          /* Confidence fades in 120ms after the card */
+                          <div
+                            className="shrink-0 animate-in fade-in zoom-in-95 motion-reduce:duration-0"
+                            style={{
+                              animationDelay: `${delay + 120}ms`,
+                              animationDuration: '300ms',
+                              animationFillMode: 'both',
+                            }}
+                          >
+                            <ConfidencePill level={field.confidence} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Value */}
+                      <div className="pl-1">
+                        {hasValue ? (
+                          <p className="text-[14px] font-medium text-text-primary whitespace-pre-wrap leading-relaxed">
+                            {field.value}
+                          </p>
+                        ) : (
+                          <p className="text-[14px] text-text-secondary italic">
+                            Not detected on the pack
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="p-8 rounded-xl border border-dashed border-border/50 bg-background/50 flex flex-col items-center justify-center text-center">
+                <ShieldCheck className="w-6 h-6 text-text-secondary/50 mb-3" />
+                <p className="text-[13px] text-text-secondary">
+                  {!isExtracting && !error ? "Ready for AI extraction" : "No declarations available"}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {isComplete && (
+            <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-6 animate-in fade-in duration-700 motion-reduce:duration-0" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
+              <div className="text-[13px] text-text-secondary">
+                <p className="font-medium text-text-primary mb-1">Extraction completed successfully.</p>
+                <p>Proceed to human review to verify and correct AI outputs.</p>
+              </div>
+              <Button 
+                onClick={() => router.push(`/inspections/${inspectionId}/review`)}
+                className="w-full sm:w-auto shrink-0 shadow-lg shadow-accent/10"
+              >
+                Start human review
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
