@@ -1,7 +1,7 @@
 import React from 'react'
 import { Card } from '../ui/Card'
 import { StatusBadge } from '../ui/StatusBadge'
-import { InspectionResponse } from '../../types/api'
+import { InspectionResponse, RecentInspectionSummary } from '../../types/api'
 import { LoadingSkeleton } from '../ui/LoadingSkeleton'
 import { EmptyState } from '../ui/EmptyState'
 import { FileText } from 'lucide-react'
@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 import { getInspectionResumeRoute } from '../../lib/inspection-routing'
 
 interface InspectionTableProps {
-  inspections: InspectionResponse[]
+  inspections: (InspectionResponse | RecentInspectionSummary)[]
   isLoading: boolean
   emptyMessage?: string
 }
@@ -59,7 +59,9 @@ export function InspectionTable({ inspections, isLoading, emptyMessage = "No ins
               month: 'short', day: 'numeric', year: 'numeric'
             })
             
-            const assessment = inspection.compliance_results?.scoring?.assessment
+            const assessment = 'assessment' in inspection && typeof inspection.assessment === 'string' 
+              ? inspection.assessment 
+              : ('compliance_results' in inspection ? (inspection as InspectionResponse).compliance_results?.scoring?.assessment : null)
             const score = inspection.compliance_score
 
             return (

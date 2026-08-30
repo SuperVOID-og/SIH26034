@@ -1,4 +1,4 @@
-import { InspectionResponse, StructuredReport } from "../types/api";
+import { InspectionResponse, StructuredReport, DashboardStats } from "../types/api";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
@@ -94,5 +94,9 @@ export const api = {
 
   getInspectionReport: async (id: number): Promise<StructuredReport> => {
     return fetchAPI<StructuredReport>(`/api/inspections/${id}/report`);
+  },
+
+  getDashboardStats: async (): Promise<DashboardStats> => {
+    return fetchAPI<DashboardStats>('/api/dashboard/stats');
   }
 };

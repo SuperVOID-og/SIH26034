@@ -147,3 +147,23 @@ export interface StructuredReport {
   summary_counts: RuleSummaryCounts;
   disclaimer: string;
 }
+
+export interface RecentInspectionSummary {
+  id: number;
+  product_category: string | null;
+  package_context: string | null;
+  status: InspectionStatus;
+  created_at: string;
+  updated_at: string | null;
+  assessment: string | null;
+  compliance_score: number | null;
+}
+
+export interface DashboardStats {
+  total_inspections: number;
+  compliant: number;
+  non_compliant: number;
+  review_required: number;
+  drafts: number;
+  recent_inspections: RecentInspectionSummary[];
+}
