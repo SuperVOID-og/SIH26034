@@ -1,3 +1,220 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    /* PackSure Graphite-Navy Theme */
+    --background: #0D1117; 
+    --surface: #121821; 
+    --surface-hover: #1C2633; 
+    --surface-raised: #18212C; 
+    --surface-muted: #0F141C;
+    --border: rgba(148, 163, 184, 0.11); 
+    --border-strong: rgba(148, 163, 184, 0.25); 
+    
+    --text-primary: #F4F7FB; 
+    --text-secondary: #AAB6C5; 
+    
+    /* Teal/Mint Accent */
+    --accent: #2DD4BF; 
+    --accent-foreground: #042f2e; 
+    --accent-surface: rgba(45, 212, 191, 0.1);
+    
+    /* Semantic colors */
+    --success: #10b981; /* emerald-500 */
+    --success-surface: rgba(16, 185, 129, 0.1);
+    
+    --failure: #ef4444; /* red-500 */
+    --failure-surface: rgba(239, 68, 68, 0.1);
+    
+    --warning: #f59e0b; /* amber-500 */
+    --warning-surface: rgba(245, 158, 11, 0.1);
+    
+    /* We map review to warning conceptually */
+    --review: #f59e0b;
+    --review-surface: rgba(245, 158, 11, 0.1);
+    
+    --info: #3b82f6; /* blue-500 */
+    --info-surface: rgba(59, 130, 246, 0.1);
+    
+    --neutral: #71717a; /* zinc-500 */
+    
+    /* F.5A Motion Tokens */
+    --motion-fast: 150ms;
+    --motion-base: 220ms;
+    --motion-slow: 350ms;
+    
+    --ease-standard: cubic-bezier(0.4, 0.0, 0.2, 1);
+    --ease-emphasized: cubic-bezier(0.2, 0.0, 0, 1);
+    --ease-decelerated: cubic-bezier(0.0, 0.0, 0.2, 1);
+  }
+}
+
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    
+    /* F.5A Refined Background System */
+    /* 1. Base dark matte (above)
+       2. Soft ambient radial light pools: Teal top-left, Blue center-right, Violet bottom-right
+       3. Subtle technical grid
+    */
+    /* Background gradients moved to layout.tsx */
+  }
+}
+
+@layer utilities {
+  .ps-ambient-teal {
+    animation: float-teal 25s ease-in-out infinite alternate;
+  }
+  .ps-ambient-blue {
+    animation: float-blue 32s ease-in-out infinite alternate;
+  }
+  .ps-ambient-violet {
+    animation: float-violet 28s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes float-teal {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.03; }
+  50% { transform: translate(3vw, 2vh) scale(1.05); opacity: 0.05; }
+  100% { transform: translate(-2vw, 4vh) scale(0.95); opacity: 0.04; }
+}
+
+@keyframes float-blue {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.04; }
+  50% { transform: translate(-4vw, -2vh) scale(1.08); opacity: 0.06; }
+  100% { transform: translate(2vw, -4vh) scale(0.98); opacity: 0.03; }
+}
+
+@keyframes float-violet {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.02; }
+  50% { transform: translate(-3vw, 3vh) scale(1.02); opacity: 0.04; }
+  100% { transform: translate(3vw, -2vh) scale(0.96); opacity: 0.03; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-ambient-teal,
+  .ps-ambient-blue,
+  .ps-ambient-violet {
+    animation: none !important;
+  }
+}
+@layer utilities {
+  .font-mono-technical {
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  }
+  
+  .glow-subtle {
+    box-shadow: 0 0 20px -5px var(--accent-surface);
+  }
+}
+
+/* ====================================================
+   SCANNER ANIMATION KEYFRAMES (F.5C)
+   Defined here so they are guaranteed to load and
+   are not subject to dangerouslySetInnerHTML timing.
+   ==================================================== */
+
+@keyframes ps-scan-beam {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(1500%); opacity: 0; }
+}
+
+@keyframes ps-scan-wave {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(300%); }
+}
+
+@keyframes ps-grain-shift {
+  0%   { transform: translate(0px, 0px) scale(1.05); }
+  25%  { transform: translate(-2px, 1px) scale(1.05); }
+  50%  { transform: translate(1px, -2px) scale(1.05); }
+  75%  { transform: translate(2px, 1px) scale(1.05); }
+  100% { transform: translate(0px, 0px) scale(1.05); }
+}
+
+.ps-scan-beam {
+  animation: ps-scan-beam 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.ps-scan-wave {
+  animation: ps-scan-wave 2.8s linear infinite;
+}
+
+.ps-grain-shift {
+  animation: ps-grain-shift 0.5s steps(2, end) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-scan-beam,
+  .ps-scan-wave,
+  .ps-grain-shift {
+    animation: none !important;
+    display: none !important;
+  }
+}
+
+/* Tracer — decorative connection line from scanner gap to declaration card */
+@keyframes ps-tracer-flash {
+  0%   { transform: scaleX(0); opacity: 0; transform-origin: right center; }
+  35%  { transform: scaleX(1); opacity: 1; transform-origin: right center; }
+  65%  { transform: scaleX(1); opacity: 1; transform-origin: left center; }
+  100% { transform: scaleX(0); opacity: 0; transform-origin: left center; }
+}
+
+.ps-tracer {
+  animation: ps-tracer-flash 0.45s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-tracer {
+    display: none !important;
+  }
+}
+
+/* ====================================================
+   PRINT STYLES (Stage H)
+   ==================================================== */
+
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm 16mm 14mm 16mm;
+  }
+  
+  html, body {
+    background-color: white !important;
+    background-image: none !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  /* Prevent awkward page breaks inside major report sections */
+  .print-avoid-break {
+    break-inside: avoid;
+  }
+
+  /* Force all scroll containers to expand naturally in print to fix PDF scrollbar & clipping */
+  html, body, main, div {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    scrollbar-width: none !important;
+  }
+  
+  ::-webkit-scrollbar {
+    display: none !important;
+  }
+}
+
+

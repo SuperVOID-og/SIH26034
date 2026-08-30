@@ -72,6 +72,45 @@ def update_inspection(inspection_id: int, inspection_in: InspectionUpdate, db: S
     db.refresh(db_inspection)
     return db_inspection
 
+@router.delete("/{inspection_id}")
+def delete_inspection(inspection_id: int, db: Session = Depends(get_db)):
+    db_inspection = db.query(Inspection).filter(Inspection.id == inspection_id).first()
+    if not db_inspection:
+        raise HTTPException(status_code=404, detail="Inspection not found")
+        
+    # Guard: completed inspections cannot be deleted as drafts
+    if db_inspection.status in (InspectionStatus.COMPLIANCE_EVALUATED, InspectionStatus.COMPLETED):
+        raise HTTPException(
+            status_code=409, 
+            detail="Completed inspections cannot be deleted as drafts."
+        )
+        
+    # Storage Cleanup
+    import os
+    import shutil
+    from app.core.config import settings
+    
+    # Defensively validate path to prevent arbitrary deletion
+    storage_root = os.path.abspath(os.path.join(settings.LOCAL_STORAGE_DIR, "inspections"))
+    target_dir = os.path.abspath(os.path.join(storage_root, str(inspection_id)))
+    
+    if not target_dir.startswith(storage_root) or target_dir == storage_root:
+        raise HTTPException(status_code=500, detail="Invalid storage path resolution.")
+        
+    if os.path.exists(target_dir):
+        try:
+            shutil.rmtree(target_dir)
+        except Exception as e:
+            # Do not delete DB record if file cleanup fails
+            raise HTTPException(status_code=500, detail=f"Failed to delete associated files: {str(e)}")
+
+    # Clean DB record
+    db.delete(db_inspection)
+    db.commit()
+    
+    return {"deleted": True, "inspection_id": inspection_id}
+
+
 import os
 import uuid
 import shutil
@@ -166,10 +205,14 @@ def extract_inspection_data(inspection_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Inspection not found")
         
     # Pre-flight state check
-    if db_inspection.status != InspectionStatus.IMAGES_UPLOADED:
+    if db_inspection.status not in (
+        InspectionStatus.IMAGES_UPLOADED, 
+        InspectionStatus.EXTRACTION_PENDING, 
+        InspectionStatus.FAILED
+    ):
         raise HTTPException(
             status_code=400, 
-            detail=f"Cannot extract data from status: {db_inspection.status.value}. Must be IMAGES_UPLOADED."
+            detail=f"Cannot extract data from status: {db_inspection.status.value}. Must be IMAGES_UPLOADED, EXTRACTION_PENDING, or FAILED."
         )
         
     # Pre-flight data checks
@@ -298,6 +341,29 @@ from app.services.compliance.rule_engine import DeterministicRuleEngine
 from app.services.compliance.scoring import ComplianceScorer
 import os
 
+def normalize_context_string(value: str | None) -> str | None:
+    """
+    Normalizes frontend-friendly context strings into deterministic
+    canonical values required by the compliance rule engine.
+    """
+    if not value:
+        return None
+    val = value.strip().lower()
+    
+    if val in ["retail shelf pack", "retail", "retail_package"]:
+        return "retail"
+    if val in ["e-commerce listing pack", "e-commerce", "ecommerce"]:
+        return "ecommerce"
+    if val in ["wholesale / bulk pack", "wholesale", "bulk"]:
+        return "wholesale"
+        
+    if val in ["medical device", "medical_device", "medical equipment"]:
+        return "medical_device"
+    if val in ["packaged food", "food", "packaged_food"]:
+        return "packaged_food"
+        
+    return val.replace(" ", "_")
+
 @router.post("/{inspection_id}/evaluate", response_model=InspectionResponse)
 def evaluate_compliance(inspection_id: int, db: Session = Depends(get_db)):
     db_inspection = db.query(Inspection).filter(Inspection.id == inspection_id).first()
@@ -317,10 +383,10 @@ def evaluate_compliance(inspection_id: int, db: Session = Depends(get_db)):
         # Validate stored verified_data
         verified_extraction = HumanVerifiedExtraction(**db_inspection.verified_data)
         
-        # Inject package_context and product_category into a COPY of the metadata
+        # Inject normalized package_context and product_category into a COPY of the metadata
         metadata_copy = deepcopy(verified_extraction.metadata)
-        metadata_copy["package_context"] = db_inspection.package_context
-        metadata_copy["product_category"] = db_inspection.product_category
+        metadata_copy["package_context"] = normalize_context_string(db_inspection.package_context)
+        metadata_copy["product_category"] = normalize_context_string(db_inspection.product_category)
         
         # We create a new copy with the updated metadata for the engine
         extraction_for_engine = HumanVerifiedExtraction(
@@ -365,3 +431,22 @@ def evaluate_compliance(inspection_id: int, db: Session = Depends(get_db)):
         db_inspection.status = InspectionStatus.FAILED
         db.commit()
         raise HTTPException(status_code=500, detail=f"Compliance evaluation failed: {str(e)}")
+
+from app.schemas.report import StructuredReport
+from app.services.report_service import ReportService
+
+@router.get("/{inspection_id}/report", response_model=StructuredReport, summary="Generate structured inspection report")
+def get_inspection_report(inspection_id: int, db: Session = Depends(get_db)):
+    """
+    Generates an authoritative, structured JSON report from a finalized inspection.
+    The report combines inspection metadata, human-verified declarations, deterministic scoring,
+    rule evaluations, and full regulatory traceability. No AI generation is performed at this stage.
+    """
+    db_inspection = db.query(Inspection).filter(Inspection.id == inspection_id).first()
+    if not db_inspection:
+        raise HTTPException(status_code=404, detail="Inspection not found")
+        
+    # The ReportService handles all strict validation, extraction, and assembly without mutating the DB record.
+    report = ReportService.generate_report(db_inspection)
+    
+    return report

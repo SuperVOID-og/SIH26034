@@ -159,3 +159,42 @@ def test_gemini_service_failure(mock_extract):
     get_res = client.get(f"/api/inspections/{inspection_id}")
     assert get_res.json()["status"] == InspectionStatus.FAILED.value
     assert get_res.json()["extracted_data"] is None
+
+
+# ---- Path traversal guard ----
+
+def test_path_traversal_rejected():
+    """Gemini service must reject paths that escape the storage root."""
+    from app.services.extraction.gemini_service import GeminiExtractionService
+    service = GeminiExtractionService()
+    # Craft a traversal path
+    traversal = "../../etc/passwd"
+    with pytest.raises(GeminiExtractionError, match="not found on disk|traversal"):
+        service.extract_from_images([traversal])
+
+
+# ---- Media serving: verify files land in LOCAL_STORAGE_DIR so /media can serve them ----
+
+def test_uploaded_image_lands_in_storage_dir():
+    """
+    Verifies that after upload, the saved file actually exists under LOCAL_STORAGE_DIR.
+    The /media static mount serves this directory, so if the file is here the URL will resolve.
+    (StaticFiles mounts bind to the real storage directory at app startup, so HTTP-level
+    assertions require an integration test against a live server, not a TestClient unit test.)
+    """
+    import io
+    res = client.post("/api/inspections/", json={})
+    iid = res.json()["id"]
+    img_bytes = io.BytesIO(b"\xff\xd8\xff" + b"0" * 512)
+    upload_res = client.post(
+        f"/api/inspections/{iid}/images",
+        files=[("files", ("test.jpg", img_bytes, "image/jpeg"))]
+    )
+    assert upload_res.status_code == 200
+    rel_path = upload_res.json()["image_paths"][0]  # e.g. "inspections/1/uuid.jpg"
+
+    # The file must exist on disk so /media can serve it
+    abs_path = os.path.join(settings.LOCAL_STORAGE_DIR, rel_path.replace("/", os.sep))
+    assert os.path.exists(abs_path), f"Uploaded file not found at: {abs_path}"
+
+
