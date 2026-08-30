@@ -232,18 +232,74 @@ export default function EvaluatePage({ params }: { params: { id: string } }) {
           }} />
 
           {isEvaluating ? (
-            <div className="flex flex-col items-center relative z-10 w-full max-w-sm">
-              <div className="w-16 h-16 bg-surface-elevated border border-border/50 rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(20,184,166,0.15)] relative">
-                {/* Simulated scanner line */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/20 to-transparent h-full animate-[scan_2s_ease-in-out_infinite]" />
-                <Server className="w-8 h-8 text-accent animate-pulse" />
-              </div>
-              <h3 className="text-xl font-medium tracking-tight mb-2">Evaluating verified declarations</h3>
-              <p className="text-sm text-text-secondary mb-8">Active Legal Metrology rules are being applied to the human-verified inspection record.</p>
+            <div className="flex flex-col items-center relative z-10 w-full max-w-2xl px-4 animate-in fade-in duration-500">
+              <h3 className="text-xl font-medium tracking-tight mb-2">Deterministic Evaluation</h3>
+              <p className="text-[14px] text-text-secondary mb-10 text-center max-w-md">The rule engine is applying Legal Metrology regulations to the verified inspection record.</p>
               
-              <div className="w-full bg-surface-elevated rounded-md border border-border/50 p-4 flex items-center justify-between font-mono text-xs">
-                <span className="text-accent truncate pr-4">{evalPhase}</span>
-                <Loader2 className="w-4 h-4 text-accent animate-spin shrink-0" />
+              {/* Process Flow */}
+              <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-0 w-full mb-10">
+                {/* Node 1 */}
+                <div className="flex flex-col items-center relative z-10 w-24">
+                  <div className="w-12 h-12 rounded-full bg-accent/10 border border-accent/30 flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(20,184,166,0.15)] relative">
+                    <Lock className="w-5 h-5 text-accent" />
+                  </div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-text-primary text-center">Verified Record</span>
+                </div>
+                
+                {/* Connector */}
+                <div className="hidden md:flex flex-1 max-w-[80px] h-px bg-border/60 relative overflow-hidden items-center">
+                  <div className="h-full bg-accent/40 w-full animate-pulse" />
+                </div>
+                <div className="md:hidden w-px h-6 bg-border/60 relative overflow-hidden">
+                  <div className="w-full bg-accent/40 h-full animate-pulse" />
+                </div>
+
+                {/* Node 2 */}
+                <div className="flex flex-col items-center relative z-10 w-24">
+                  <div className="w-12 h-12 rounded-full bg-surface-elevated border border-border/50 flex items-center justify-center mb-3 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-accent/5 animate-pulse" style={{ animationDelay: '150ms' }} />
+                    <FileSearch className="w-5 h-5 text-text-secondary" />
+                  </div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-text-secondary text-center">Applicability</span>
+                </div>
+
+                {/* Connector */}
+                <div className="hidden md:flex flex-1 max-w-[80px] h-px bg-border/60 relative overflow-hidden items-center">
+                  <div className="h-full bg-accent/40 w-full animate-pulse" style={{ animationDelay: '150ms' }} />
+                </div>
+                <div className="md:hidden w-px h-6 bg-border/60 relative overflow-hidden">
+                  <div className="w-full bg-accent/40 h-full animate-pulse" style={{ animationDelay: '150ms' }} />
+                </div>
+
+                {/* Node 3 */}
+                <div className="flex flex-col items-center relative z-10 w-24">
+                  <div className="w-12 h-12 rounded-full bg-surface-elevated border border-border/50 flex items-center justify-center mb-3 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-accent/5 animate-pulse" style={{ animationDelay: '300ms' }} />
+                    <Server className="w-5 h-5 text-text-secondary" />
+                  </div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-text-secondary text-center">Rule Engine</span>
+                </div>
+
+                {/* Connector */}
+                <div className="hidden md:flex flex-1 max-w-[80px] h-px bg-border/60 relative overflow-hidden items-center">
+                  <div className="h-full bg-border/40 w-full" />
+                </div>
+                <div className="md:hidden w-px h-6 bg-border/60 relative overflow-hidden">
+                  <div className="w-full bg-border/40 h-full" />
+                </div>
+
+                {/* Node 4 */}
+                <div className="flex flex-col items-center relative z-10 w-24">
+                  <div className="w-12 h-12 rounded-full bg-background border border-border/30 flex items-center justify-center mb-3">
+                    <Scale className="w-5 h-5 text-text-secondary/40" />
+                  </div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-text-secondary/40 text-center">Assessment</span>
+                </div>
+              </div>
+              
+              <div className="w-full max-w-sm bg-surface-elevated rounded-md border border-border/50 p-4 flex items-center justify-between font-mono text-[11px] uppercase tracking-wider text-accent shadow-sm">
+                <span className="truncate pr-4">{evalPhase}</span>
+                <Loader2 className="w-4 h-4 animate-spin shrink-0 opacity-70" />
               </div>
             </div>
           ) : isEvaluated && complianceResults ? (

@@ -189,19 +189,24 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
       <StageRail current="review" />
 
       {/* Summary Stats */}
-      <div className="flex items-center gap-4 text-sm font-medium">
-        <div className={cn(
-          "px-3 py-1.5 rounded-md flex items-center gap-2", 
-          modifiedCount > 0 ? "bg-accent/10 text-accent" : "bg-surface text-text-secondary"
-        )}>
-          {modifiedCount > 0 ? <AlertCircle className="w-4 h-4" /> : null}
-          {modifiedCount} modified
+      <div className="flex items-center gap-4 text-[13px] font-medium border-b border-border/40 pb-4 mb-6">
+        <div className="text-text-primary">
+          {REVIEW_FIELDS.length} declarations reviewed
         </div>
-        <div className={cn(
-          "px-3 py-1.5 rounded-md", 
-          missingCount > 0 ? "bg-surface-elevated text-text-secondary" : "bg-surface text-text-secondary"
-        )}>
-          {missingCount} missing
+        <div className="flex items-center gap-3 ml-2">
+          <div className={cn(
+            "px-2.5 py-1 rounded-md flex items-center gap-1.5 transition-colors", 
+            modifiedCount > 0 ? "bg-accent/10 text-accent" : "bg-surface text-text-secondary"
+          )}>
+            {modifiedCount > 0 && <AlertCircle className="w-3.5 h-3.5" />}
+            {modifiedCount} modified
+          </div>
+          <div className={cn(
+            "px-2.5 py-1 rounded-md transition-colors", 
+            missingCount > 0 ? "bg-surface-elevated text-text-secondary" : "bg-surface text-text-secondary"
+          )}>
+            {missingCount} missing
+          </div>
         </div>
       </div>
       
@@ -259,86 +264,102 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
               const isModified = aiValue.trim() !== currentValue.trim()
               
               return (
-                <Card key={field.canonical} className="p-4 sm:p-5 flex flex-col gap-4">
+                <Card key={field.canonical} className="p-4 sm:p-5 flex flex-col gap-5 border-border/40 bg-surface/40 hover:border-border/80 transition-colors">
                   {/* Field Header */}
                   <div className="flex items-start justify-between gap-4">
-                    <h4 className="font-medium text-text-primary">{field.label}</h4>
+                    <h4 className="font-medium text-text-primary text-[15px]">{field.label}</h4>
                     {isModified && (
-                      <span className="text-[11px] font-medium uppercase tracking-wider text-accent bg-accent/10 px-2 py-0.5 rounded-sm">
+                      <span className="text-[10px] font-medium uppercase tracking-widest text-accent bg-accent/10 px-2 py-0.5 rounded-sm border border-accent/20 shadow-[0_0_10px_rgba(20,184,166,0.1)]">
                         Modified
                       </span>
                     )}
                   </div>
 
-                  {/* AI Value Display (Read-Only) */}
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-surface rounded-md border border-border/50">
-                    <span className="text-xs font-mono font-medium text-text-secondary uppercase tracking-widest shrink-0 w-12">
-                      AI
-                    </span>
-                    <div className="flex-1 text-sm text-text-secondary">
-                      {aiValue ? (
-                        <span className="line-clamp-3">{aiValue}</span>
-                      ) : (
-                        <span className="italic opacity-50">Not detected on the pack</span>
-                      )}
+                  <div className="flex flex-col gap-4 relative">
+                    {/* Desktop directional relationship (AI -> Verified) */}
+                    <div className="hidden sm:block absolute left-[15px] top-[40px] bottom-[28px] w-[2px] bg-border/40 rounded-full" />
+                    
+                    {/* AI Value Panel (Read-only, technical) */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-black/40 rounded-lg border border-border/30 relative z-10">
+                      <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-md bg-surface border border-border/50 text-[10px] font-mono font-medium text-text-secondary uppercase tracking-widest">
+                        AI
+                      </div>
+                      <div className="flex-1 text-[13px] text-text-secondary">
+                        {aiValue ? (
+                          <span className="line-clamp-3 leading-relaxed">{aiValue}</span>
+                        ) : (
+                          <span className="italic opacity-60">Not detected on the pack</span>
+                        )}
+                      </div>
+                      <div className="shrink-0 self-start sm:self-auto">
+                        <ConfidencePill level={aiConfidence} />
+                      </div>
                     </div>
-                    <div className="shrink-0">
-                      <ConfidencePill level={aiConfidence} />
-                    </div>
-                  </div>
 
-                  {/* Verified Value Input (Editable) */}
-                  <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-                    <span className="text-xs font-mono font-medium text-accent uppercase tracking-widest shrink-0 w-12 sm:pt-3">
-                      YOU
-                    </span>
-                    <div className="flex-1 relative">
-                      {field.isLong ? (
-                        <Textarea 
-                          value={currentValue}
-                          onChange={(e) => handleInputChange(field.canonical, e.target.value)}
-                          onFocus={() => setFocusedField(field.canonical)}
-                          onBlur={() => setFocusedField(null)}
-                          placeholder="Enter the verified value"
-                          className={isModified ? "border-accent bg-accent-surface" : ""}
-                        />
-                      ) : (
-                        <Input 
-                          value={currentValue}
-                          onChange={(e) => handleInputChange(field.canonical, e.target.value)}
-                          onFocus={() => setFocusedField(field.canonical)}
-                          onBlur={() => setFocusedField(null)}
-                          placeholder="Enter the verified value"
-                          className={isModified ? "border-accent bg-accent-surface" : ""}
-                        />
-                      )}
+                    {/* Verified Value Panel (Interactive, brighter) */}
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-3 relative z-10">
+                      <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-md bg-accent/10 border border-accent/20 text-[10px] font-mono font-medium text-accent uppercase tracking-widest">
+                        YOU
+                      </div>
+                      <div className="flex-1 relative group">
+                        {field.isLong ? (
+                          <Textarea 
+                            value={currentValue}
+                            onChange={(e) => handleInputChange(field.canonical, e.target.value)}
+                            onFocus={() => setFocusedField(field.canonical)}
+                            onBlur={() => setFocusedField(null)}
+                            placeholder="Enter the verified value"
+                            className={cn(
+                              "min-h-[80px] bg-surface hover:bg-surface-elevated transition-colors border-border/60 focus:border-accent shadow-sm pr-24",
+                              isModified ? "border-accent/40 bg-accent/5" : ""
+                            )}
+                          />
+                        ) : (
+                          <Input 
+                            value={currentValue}
+                            onChange={(e) => handleInputChange(field.canonical, e.target.value)}
+                            onFocus={() => setFocusedField(field.canonical)}
+                            onBlur={() => setFocusedField(null)}
+                            placeholder="Enter the verified value"
+                            className={cn(
+                              "bg-surface hover:bg-surface-elevated transition-colors border-border/60 focus:border-accent shadow-sm pr-24",
+                              isModified ? "border-accent/40 bg-accent/5" : ""
+                            )}
+                          />
+                        )}
+                        
+                        {/* Reset button if modified */}
+                        {isModified && (
+                          <div className="absolute right-2 top-2 z-20">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleReset(field.canonical, aiValue)}
+                              className="h-7 px-2 text-[12px] text-text-secondary hover:text-text-primary hover:bg-surface-elevated flex items-center gap-1.5 opacity-0 sm:opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 transition-opacity"
+                              title="Reset to AI value"
+                            >
+                              <RotateCcw className="h-3 w-3" />
+                              <span className="hidden sm:inline">Reset to AI</span>
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    {/* Reset button if modified */}
-                    {isModified && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleReset(field.canonical, aiValue)}
-                        className="shrink-0 h-10 w-10 p-0 sm:mt-0 mt-2 self-end sm:self-start"
-                        title="Reset to AI value"
-                      >
-                        <RotateCcw className="h-4 w-4 text-text-secondary" />
-                      </Button>
-                    )}
                   </div>
                 </Card>
               )
             })}
           </div>
 
-          <div className="pt-6 pb-12 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border mt-8">
-            <p className="text-sm text-text-secondary">
-              Confirming locks these values as the verified record.
-            </p>
+          <div className="pt-8 pb-12 flex flex-col sm:flex-row items-center justify-between gap-6 border-t border-border mt-10">
+            <div className="text-[14px] text-text-secondary">
+              <p className="font-medium text-text-primary mb-1">Confirm verified declarations</p>
+              <p>This locks these values as the verified record for the rule engine.</p>
+            </div>
             <Button 
               onClick={handleSubmit} 
               disabled={isSubmitting}
-              className="w-full sm:w-auto min-w-[200px]"
+              className="w-full sm:w-auto min-w-[200px] shadow-[0_0_15px_rgba(20,184,166,0.15)]"
             >
               {isSubmitting ? (
                 <>
@@ -346,7 +367,7 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
                   Submitting...
                 </>
               ) : (
-                "Confirm & evaluate"
+                "Confirm verified declarations"
               )}
             </Button>
           </div>
