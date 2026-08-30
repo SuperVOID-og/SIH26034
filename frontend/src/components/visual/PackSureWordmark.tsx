@@ -2,15 +2,15 @@
 import React from 'react'
 import { cn } from '../../lib/utils'
 
-interface CursorRevealMarkProps {
+interface PackSureWordmarkProps {
   className?: string
   text?: string
 }
 
-export function CursorRevealMark({ 
+export function PackSureWordmark({ 
   className, 
   text = "PACKSURE"
-}: CursorRevealMarkProps) {
+}: PackSureWordmarkProps) {
   return (
     <div 
       className={cn(

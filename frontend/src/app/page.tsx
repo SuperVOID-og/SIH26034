@@ -11,7 +11,7 @@ import { FileText, CheckCircle2, XCircle, AlertCircle, Plus } from 'lucide-react
 import { Button } from '../components/ui/Button'
 import Link from 'next/link'
 
-import { CursorRevealMark } from '../components/visual/CursorRevealMark'
+import { PackSureWordmark } from '../components/visual/PackSureWordmark'
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
@@ -58,7 +58,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-500 relative">
       <div className="-mb-4">
-        <CursorRevealMark className="justify-start" />
+        <PackSureWordmark className="justify-start" />
       </div>
       
       <PageHeader 

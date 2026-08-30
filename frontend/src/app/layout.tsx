@@ -10,14 +10,13 @@ const sora = Sora({
 });
 
 const inter = Inter({
-  weight: ['400', '500', '600'],
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap"
 });
 
 const ibmPlexSans = IBM_Plex_Sans({
-  weight: ['400', '500', '600', '700'],
+  weight: "700",
   subsets: ["latin"],
   variable: "--font-ibm",
   display: "swap"
