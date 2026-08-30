@@ -35,6 +35,16 @@ const config: Config = {
       fontFamily: {
         mono: ['ui-monospace', 'SFMono-Regular', 'Consolas', '"Liberation Mono"', 'monospace'],
       },
+      transitionDuration: {
+        fast: 'var(--motion-fast)',
+        base: 'var(--motion-base)',
+        slow: 'var(--motion-slow)',
+      },
+      transitionTimingFunction: {
+        standard: 'var(--ease-standard)',
+        emphasized: 'var(--ease-emphasized)',
+        decelerated: 'var(--ease-decelerated)',
+      },
     },
   },
   plugins: [],

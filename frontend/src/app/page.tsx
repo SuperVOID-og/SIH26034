@@ -11,6 +11,8 @@ import { FileText, CheckCircle2, XCircle, AlertCircle, Plus } from 'lucide-react
 import { Button } from '../components/ui/Button'
 import Link from 'next/link'
 
+import { CursorRevealMark } from '../components/visual/CursorRevealMark'
+
 export default function DashboardPage() {
   const [inspections, setInspections] = useState<InspectionResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -37,7 +39,7 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 relative">
         <PageHeader 
           title="Inspection command center" 
           eyebrow="Compliance intelligence"
@@ -70,7 +72,11 @@ export default function DashboardPage() {
   const recentInspections = inspections.slice(0, 5)
 
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-500 relative">
+      <div className="-mb-4">
+        <CursorRevealMark className="justify-start" />
+      </div>
+      
       <PageHeader 
         title="Inspection command center" 
         eyebrow="Compliance intelligence"

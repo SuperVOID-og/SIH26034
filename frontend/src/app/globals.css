@@ -38,6 +38,15 @@
     --info-surface: rgba(59, 130, 246, 0.1);
     
     --neutral: #71717a; /* zinc-500 */
+    
+    /* F.5A Motion Tokens */
+    --motion-fast: 150ms;
+    --motion-base: 220ms;
+    --motion-slow: 350ms;
+    
+    --ease-standard: cubic-bezier(0.4, 0.0, 0.2, 1);
+    --ease-emphasized: cubic-bezier(0.2, 0.0, 0, 1);
+    --ease-decelerated: cubic-bezier(0.0, 0.0, 0.2, 1);
   }
 }
 
@@ -46,13 +55,21 @@
     background-color: var(--background);
     color: var(--text-primary);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    /* Subtle atmospheric grid field */
+    
+    /* F.5A Refined Background System */
+    /* 1. Base dark matte (above)
+       2. Soft ambient radial light pools
+       3. Subtle technical grid
+    */
     background-image: 
+      radial-gradient(circle at 15% 50%, rgba(20, 184, 166, 0.015), transparent 25vw),
+      radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.015), transparent 25vw),
       linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-    background-size: 40px 40px;
-    background-position: center top;
+    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    background-position: 0 0, 0 0, center top, center top;
     background-attachment: fixed;
+    background-repeat: no-repeat, no-repeat, repeat, repeat;
   }
 }
 
