@@ -19,7 +19,8 @@ ALLOWED_TRANSITIONS = {
     InspectionStatus.COMPLETED: [],  # Terminal state
     InspectionStatus.FAILED: []      # Terminal state
 }
-
+@router.post("", response_model=InspectionResponse, include_in_schema=False)
+@router.post("/", response_model=InspectionResponse)
 @router.post("/", response_model=InspectionResponse)
 def create_inspection(inspection_in: InspectionCreate, db: Session = Depends(get_db)):
     db_inspection = Inspection(
@@ -32,6 +33,7 @@ def create_inspection(inspection_in: InspectionCreate, db: Session = Depends(get
     db.refresh(db_inspection)
     return db_inspection
 
+@router.get("", response_model=List[InspectionResponse], include_in_schema=False)
 @router.get("/", response_model=List[InspectionResponse])
 def list_inspections(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     inspections = db.query(Inspection).offset(skip).limit(limit).all()
