@@ -3,6 +3,9 @@
 const nextConfig = {
   reactStrictMode: true,
 
+  // Preserve FastAPI endpoint trailing slashes through the Vercel proxy
+  skipTrailingSlashRedirect: true,
+
   async rewrites() {
     return [
       {
