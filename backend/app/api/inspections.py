@@ -138,189 +138,258 @@ MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
 
 @router.post("/{inspection_id}/images", response_model=InspectionResponse)
 def upload_inspection_images(
-    inspection_id: int, 
-    files: List[UploadFile] = File(...), 
+    inspection_id: int,
+    files: List[UploadFile] = File(...),
     db: Session = Depends(get_db)
 ):
-    db_inspection = db.query(Inspection).filter(Inspection.id == inspection_id).first()
+    db_inspection = (
+        db.query(Inspection)
+        .filter(Inspection.id == inspection_id)
+        .first()
+    )
+
     if not db_inspection:
-        raise HTTPException(status_code=404, detail="Inspection not found")
-        
+        raise HTTPException(
+            status_code=404,
+            detail="Inspection not found"
+        )
+
     if not files:
-        raise HTTPException(status_code=400, detail="No files provided")
+        raise HTTPException(
+            status_code=400,
+            detail="No files provided"
+        )
 
     # Status validation
-    if db_inspection.status not in (InspectionStatus.CREATED, InspectionStatus.IMAGES_UPLOADED):
+    if db_inspection.status not in (
+        InspectionStatus.CREATED,
+        InspectionStatus.IMAGES_UPLOADED
+    ):
         raise HTTPException(
-            status_code=400, 
-            detail=f"Cannot upload images in current status: {db_inspection.status.value}"
+            status_code=400,
+            detail=(
+                f"Cannot upload images in current status: "
+                f"{db_inspection.status.value}"
+            )
         )
 
-    # 1. Validate all files first
+    # 1. Validate files
     for file in files:
         if file.content_type not in ALLOWED_MIME_TYPES:
-            raise HTTPException(status_code=400, detail=f"Unsupported file type: {file.content_type}")
-            
-    # 2. Process and save files to Supabase Storage
-
-uploaded_paths = []
-relative_paths = []
-
-try:
-    for file in files:
-        file_bytes = file.file.read()
-
-        if len(file_bytes) > MAX_FILE_SIZE_BYTES:
             raise HTTPException(
                 status_code=400,
-                detail=f"File {file.filename} exceeds the 5MB size limit"
+                detail=f"Unsupported file type: {file.content_type}"
             )
 
-        ext = file.content_type.split("/")[1]
+    # 2. Upload files to Supabase Storage
+    uploaded_paths = []
+    relative_paths = []
 
-        if ext == "jpeg":
-            ext = "jpg"
+    try:
+        for file in files:
+            file_bytes = file.file.read()
 
-        safe_filename = f"{uuid.uuid4()}.{ext}"
+            if len(file_bytes) > MAX_FILE_SIZE_BYTES:
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"File {file.filename} exceeds "
+                        "the 5MB size limit"
+                    )
+                )
 
-        relative_path = f"inspections/{inspection_id}/{safe_filename}"
+            ext = file.content_type.split("/")[1]
 
-        supabase.storage.from_(STORAGE_BUCKET).upload(
-            path=relative_path,
-            file=file_bytes,
-            file_options={
-                "content-type": file.content_type,
-                "upsert": "false"
-            }
-        )
+            if ext == "jpeg":
+                ext = "jpg"
 
-        uploaded_paths.append(relative_path)
-        relative_paths.append(relative_path)
+            safe_filename = f"{uuid.uuid4()}.{ext}"
 
-except Exception as e:
-    if uploaded_paths:
-        try:
-            supabase.storage.from_(STORAGE_BUCKET).remove(
-                uploaded_paths
+            relative_path = (
+                f"inspections/{inspection_id}/{safe_filename}"
             )
-        except Exception:
-            pass
 
-    raise e
+            supabase.storage.from_(STORAGE_BUCKET).upload(
+                path=relative_path,
+                file=file_bytes,
+                file_options={
+                    "content-type": file.content_type,
+                    "upsert": "false"
+                }
+            )
 
- # 3. Update database
+            uploaded_paths.append(relative_path)
+            relative_paths.append(relative_path)
+
+    except Exception as e:
+        # Remove Supabase files if only part of the upload succeeded
+        if uploaded_paths:
+            try:
+                supabase.storage.from_(STORAGE_BUCKET).remove(
+                    uploaded_paths
+                )
+            except Exception:
+                pass
+
+        raise e
+
+    # 3. Update database
     current_images = db_inspection.image_paths or []
     current_images.extend(relative_paths)
-    
-    # We must explicitly force SQLAlchemy to recognize the JSON mutation
+
     from sqlalchemy.orm.attributes import flag_modified
+
     db_inspection.image_paths = current_images
     flag_modified(db_inspection, "image_paths")
-    
+
     if db_inspection.status == InspectionStatus.CREATED:
         db_inspection.status = InspectionStatus.IMAGES_UPLOADED
-        
+
     db.commit()
     db.refresh(db_inspection)
+
     return db_inspection
 
 from app.services.extraction.gemini_service import GeminiExtractionService, GeminiExtractionError
 
 @router.post("/{inspection_id}/extract", response_model=InspectionResponse)
-def extract_inspection_data(inspection_id: int, db: Session = Depends(get_db)):
-    db_inspection = db.query(Inspection).filter(Inspection.id == inspection_id).first()
+def extract_inspection_data(
+    inspection_id: int,
+    db: Session = Depends(get_db)
+):
+    db_inspection = (
+        db.query(Inspection)
+        .filter(Inspection.id == inspection_id)
+        .first()
+    )
+
     if not db_inspection:
-        raise HTTPException(status_code=404, detail="Inspection not found")
-        
+        raise HTTPException(
+            status_code=404,
+            detail="Inspection not found"
+        )
+
     # Pre-flight state check
     if db_inspection.status not in (
-        InspectionStatus.IMAGES_UPLOADED, 
-        InspectionStatus.EXTRACTION_PENDING, 
+        InspectionStatus.IMAGES_UPLOADED,
+        InspectionStatus.EXTRACTION_PENDING,
         InspectionStatus.FAILED
     ):
         raise HTTPException(
-            status_code=400, 
-            detail=f"Cannot extract data from status: {db_inspection.status.value}. Must be IMAGES_UPLOADED, EXTRACTION_PENDING, or FAILED."
+            status_code=400,
+            detail=(
+                f"Cannot extract data from status: "
+                f"{db_inspection.status.value}. "
+                "Must be IMAGES_UPLOADED, EXTRACTION_PENDING, or FAILED."
+            )
         )
-        
+
     # Pre-flight data checks
     if not db_inspection.image_paths:
-        raise HTTPException(status_code=400, detail="No images associated with this inspection.")
-        
+        raise HTTPException(
+            status_code=400,
+            detail="No images associated with this inspection."
+        )
+
     if not settings.GEMINI_API_KEY:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not configured.")
-        
+        raise HTTPException(
+            status_code=500,
+            detail="GEMINI_API_KEY is not configured."
+        )
+
     # Download persistent evidence from Supabase Storage
-# into temporary local storage for Gemini processing.
+    # into temporary local storage for Gemini processing
+    downloaded_files = []
 
-downloaded_files = []
-
-try:
-    for rel_path in db_inspection.image_paths:
-
-        file_bytes = (
-            supabase.storage
-            .from_(STORAGE_BUCKET)
-            .download(rel_path)
-        )
-
-        abs_path = os.path.join(
-            settings.LOCAL_STORAGE_DIR,
-            rel_path.replace("/", os.sep)
-        )
-
-        os.makedirs(
-            os.path.dirname(abs_path),
-            exist_ok=True
-        )
-
-        with open(abs_path, "wb") as f:
-            f.write(file_bytes)
-
-        downloaded_files.append(abs_path)
-
-except Exception as e:
-    raise HTTPException(
-        status_code=500,
-        detail=f"Failed to load inspection evidence: {str(e)}"
-    )
-
-    # Transition to pending
-    db_inspection.status = InspectionStatus.EXTRACTION_PENDING
-    db.commit()
-    
-    # Process extraction
-    service = GeminiExtractionService()
     try:
-        declarations = service.extract_from_images(db_inspection.image_paths)
-        
-        # Save output
-        db_inspection.extracted_data = declarations.model_dump()
-        db_inspection.status = InspectionStatus.EXTRACTION_COMPLETED
-        db.commit()
-        
-        
-        # Immediately transition to Human Review Pending
-        db_inspection.status = InspectionStatus.HUMAN_REVIEW_PENDING
-        db.commit()
-        db.refresh(db_inspection)
+        for rel_path in db_inspection.image_paths:
+            file_bytes = (
+                supabase.storage
+                .from_(STORAGE_BUCKET)
+                .download(rel_path)
+            )
+
+            abs_path = os.path.join(
+                settings.LOCAL_STORAGE_DIR,
+                rel_path.replace("/", os.sep)
+            )
+
+            os.makedirs(
+                os.path.dirname(abs_path),
+                exist_ok=True
+            )
+
+            with open(abs_path, "wb") as f:
+                f.write(file_bytes)
+
+            downloaded_files.append(abs_path)
+
+    except Exception as e:
+        # Clean up partially downloaded files
         for local_file in downloaded_files:
             try:
                 if os.path.exists(local_file):
                     os.remove(local_file)
             except Exception:
                 pass
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to load inspection evidence: {str(e)}"
+        )
+
+    # Transition to pending
+    db_inspection.status = InspectionStatus.EXTRACTION_PENDING
+    db.commit()
+
+    # Process extraction
+    service = GeminiExtractionService()
+
+    try:
+        declarations = service.extract_from_images(
+            db_inspection.image_paths
+        )
+
+        # Save output
+        db_inspection.extracted_data = declarations.model_dump()
+        db_inspection.status = InspectionStatus.EXTRACTION_COMPLETED
+        db.commit()
+
+        # Immediately transition to Human Review Pending
+        db_inspection.status = InspectionStatus.HUMAN_REVIEW_PENDING
+        db.commit()
+
+        db.refresh(db_inspection)
+
         return db_inspection
-        
+
     except GeminiExtractionError as e:
-        # On any extraction failure, mark FAILED per user instruction
         db_inspection.status = InspectionStatus.FAILED
         db.commit()
-        raise HTTPException(status_code=500, detail=str(e))
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
     except Exception as e:
         db_inspection.status = InspectionStatus.FAILED
         db.commit()
-        raise HTTPException(status_code=500, detail=f"Unexpected error during extraction: {str(e)}")
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error during extraction: {str(e)}"
+        )
+
+    finally:
+        # Delete only Northflank temporary copies.
+        # Supabase originals remain untouched.
+        for local_file in downloaded_files:
+            try:
+                if os.path.exists(local_file):
+                    os.remove(local_file)
+            except Exception:
+                pass
 
 from app.schemas.inspection import ReviewSubmission
 from app.schemas.compliance import HumanVerifiedExtraction
