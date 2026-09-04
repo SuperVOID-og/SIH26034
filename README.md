@@ -24,7 +24,7 @@ https://packsure-ai-sigma.vercel.app
 
 ### ⚙️ Backend API / Swagger
 
-https://sih26034-production.up.railway.app/docs
+https://site--packsure-backend--x7pw8gw6yhrv.code.run/docs
 
 ---
 
@@ -407,27 +407,27 @@ flowchart LR
 
     VERCEL[Vercel<br/>Next.js Frontend]
 
-    RAILWAY[Railway<br/>FastAPI Backend]
+    NORTHFLANK[Northflank<br/>FastAPI Backend]
 
     GEMINI[Gemini 3.6 Flash]
 
     RULES[Deterministic<br/>Rule Engine]
 
-    SQLITE[(SQLite)]
+    POSTGRES[(Supabase PostgreSQL)]
 
-    IMAGES[(Uploaded Images)]
+    STORAGE[(Supabase Storage)]
 
     USER --> VERCEL
 
-    VERCEL -->|API Proxy| RAILWAY
+    VERCEL -->|HTTPS API| NORTHFLANK
 
-    RAILWAY --> GEMINI
+    NORTHFLANK --> GEMINI
 
-    RAILWAY --> RULES
+    NORTHFLANK --> RULES
 
-    RAILWAY --> SQLITE
+    NORTHFLANK --> POSTGRES
 
-    RAILWAY --> IMAGES
+    NORTHFLANK --> STORAGE
 ```
 
 ### Production request path
@@ -437,20 +437,23 @@ Desktop / Mobile / Judge Device
               ↓
 packsure-ai-sigma.vercel.app
               ↓
-         Vercel Proxy
-          ↙       ↘
-       /api      /media
-          ↓       ↓
-       Railway Backend
-              ↓
-    ┌─────────┴─────────┐
-    │                   │
- Gemini API       Persistent /data
-                  ├── packsure.db
-                  └── local_storage/
+      Northflank FastAPI
+         ↙          ↘
+      /api          /media
+       ↓              ↓
+Supabase PostgreSQL   Supabase Storage
+       ↓              ↓
+Inspection data       Private evidence/images
+
+Northflank also calls:
+- Gemini API for multimodal declaration extraction
+- the deterministic compliance engine for final rule evaluation
 ```
 
-The Vercel proxy also prevents client devices from needing direct access to the Railway hostname.
+Uploaded evidence is stored persistently in a private Supabase Storage bucket.  
+Inspection records, extracted data, verified data, compliance results and report state are stored in Supabase PostgreSQL.
+
+The `/media/*` backend route retrieves private evidence from Supabase Storage and streams it to the frontend without exposing backend credentials.
 
 ---
 
@@ -548,13 +551,16 @@ The frontend does not derive compliance statistics by scanning all inspections l
 
 ## ⚙️ Backend
 
-- Python 3.12
+- Python
 - FastAPI
 - SQLAlchemy
-- SQLite
+- PostgreSQL via Supabase
+- SQLite-compatible local development
 - Pydantic
 - Uvicorn
 - Pytest
+- Supabase Python client
+- Psycopg
 
 ---
 
@@ -579,29 +585,44 @@ frontend/
 
 ### Backend
 
-**Railway**
+**Northflank**
 
 ```text
 backend/
 ```
 
-### Persistent Railway Volume
+### Persistent Database
+
+**Supabase PostgreSQL**
+
+Stores:
 
 ```text
-/data
+inspection records
+extracted_data
+verified_data
+compliance results
+report state
+image object paths
 ```
 
-Database:
+### Persistent Evidence Storage
+
+**Supabase Storage**
+
+Private bucket:
 
 ```text
-/data/packsure.db
+packsure-evidence
 ```
 
-Uploaded images:
+Object layout:
 
 ```text
-/data/local_storage/
+inspections/{inspection_id}/{uuid}.{ext}
 ```
+
+Northflank may use temporary local storage while Gemini processes an image, but persistent evidence remains in Supabase Storage.
 
 ---
 
@@ -831,20 +852,38 @@ The production build and backend test suite were validated before deployment.
 
 # ☁️ Production Configuration
 
-## Railway
+## Northflank
 
-Backend root directory:
+Backend build context:
 
 ```text
 /backend
 ```
 
+Runtime:
+
+```text
+FastAPI / Uvicorn
+```
+
+Production start command:
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8080
+```
+
 Runtime variables:
 
 ```env
-DATABASE_URL=sqlite:////data/packsure.db
+DATABASE_URL=postgresql://postgres.<project-ref>:<password>@aws-0-ap-south-1.pooler.supabase.com:5432/postgres
 
-LOCAL_STORAGE_DIR=/data/local_storage
+LOCAL_STORAGE_DIR=/tmp/packsure_storage
+
+SUPABASE_URL=https://<project-ref>.supabase.co
+
+SUPABASE_SECRET_KEY=<secret>
+
+SUPABASE_STORAGE_BUCKET=packsure-evidence
 
 GEMINI_MODEL=gemini-3.6-flash
 
@@ -853,17 +892,43 @@ GEMINI_API_KEY=<secret>
 CORS_ORIGINS=http://localhost:3000,https://packsure-ai-sigma.vercel.app
 ```
 
-Persistent volume:
+> Never commit real database passwords, Supabase secret keys or Gemini API keys to Git.
+
+Public backend:
 
 ```text
-/data
+https://site--packsure-backend--x7pw8gw6yhrv.code.run
 ```
 
-Production start command:
+Swagger:
 
-```bash
-uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
+```text
+https://site--packsure-backend--x7pw8gw6yhrv.code.run/docs
 ```
+
+---
+
+## Supabase
+
+### PostgreSQL
+
+Production inspection data is stored in Supabase PostgreSQL through the Session Pooler.
+
+### Storage
+
+Private bucket:
+
+```text
+packsure-evidence
+```
+
+Uploaded package evidence is stored persistently under:
+
+```text
+inspections/{inspection_id}/{uuid}.{ext}
+```
+
+The backend downloads evidence temporarily when required for Gemini extraction and removes only the temporary local copy after processing.
 
 ---
 
@@ -884,22 +949,12 @@ Next.js
 Production API base:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=https://packsure-ai-sigma.vercel.app
+NEXT_PUBLIC_API_BASE_URL=https://site--packsure-backend--x7pw8gw6yhrv.code.run
 ```
 
-Vercel rewrites proxy:
+The browser communicates directly with the Northflank FastAPI service.
 
-```text
-/api/*
-```
-
-and:
-
-```text
-/media/*
-```
-
-to the Railway backend.
+Backend `/media/*` requests are served by Northflank, which securely reads the corresponding private object from Supabase Storage.
 
 ---
 
@@ -914,9 +969,9 @@ The frontend does **not** receive:
 - database credentials
 - private backend configuration
 
-The Gemini key exists only in backend environment variables.
+The Gemini key and Supabase secret key exist only in backend environment variables.
 
-Uploaded package images and SQLite runtime data are stored on the Railway persistent volume.
+Inspection records are stored in Supabase PostgreSQL, while uploaded package images/evidence are stored in a private Supabase Storage bucket. The frontend never receives the Supabase secret key.
 
 Environment files should never be committed to Git.
 
@@ -959,7 +1014,6 @@ The current prototype:
 - requires human verification before compliance evaluation
 - does not claim complete Indian packaging-law coverage
 - does not yet implement full authentication / RBAC
-- currently uses SQLite
 - does not currently implement inspection revisions
 - does not replace statutory Legal Metrology inspection
 
@@ -976,8 +1030,6 @@ Possible future extensions:
 - authentication
 - role-based access control
 - inspector organizations
-- PostgreSQL
-- object storage
 - bulk inspection
 - barcode / QR identification
 - multilingual package extraction
