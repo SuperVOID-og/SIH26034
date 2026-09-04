@@ -305,11 +305,11 @@ except Exception as e:
         db.commit()
         db.refresh(db_inspection)
         for local_file in downloaded_files:
-    try:
-        if os.path.exists(local_file):
-            os.remove(local_file)
-    except Exception:
-        pass
+            try:
+                if os.path.exists(local_file):
+                    os.remove(local_file)
+            except Exception:
+                pass
         return db_inspection
         
     except GeminiExtractionError as e:
