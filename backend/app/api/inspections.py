@@ -4,7 +4,21 @@ from typing import List
 from app.core.database import get_db
 from app.models.inspection import Inspection
 from app.schemas.inspection import InspectionCreate, InspectionUpdate, InspectionResponse, InspectionStatus
+import os
+import uuid
 
+from supabase import create_client
+
+
+supabase = create_client(
+    os.environ["SUPABASE_URL"],
+    os.environ["SUPABASE_SECRET_KEY"]
+)
+
+STORAGE_BUCKET = os.environ.get(
+    "SUPABASE_STORAGE_BUCKET",
+    "packsure-evidence"
+)
 router = APIRouter()
 
 # Transition map enforcing linear state changes
@@ -147,30 +161,53 @@ def upload_inspection_images(
         if file.content_type not in ALLOWED_MIME_TYPES:
             raise HTTPException(status_code=400, detail=f"Unsupported file type: {file.content_type}")
             
-    # 2. Process and save files
-    inspection_dir = os.path.join(settings.LOCAL_STORAGE_DIR, "inspections", str(inspection_id))
-    os.makedirs(inspection_dir, exist_ok=True)
-    
-    saved_files = []
-    relative_paths = []
-    
-    try:
-        for file in files:
-            # Check size by reading chunks
-            file_bytes = file.file.read()
-            if len(file_bytes) > MAX_FILE_SIZE_BYTES:
-                raise HTTPException(status_code=400, detail=f"File {file.filename} exceeds the 5MB size limit")
-            
-            ext = file.content_type.split("/")[1]
-            if ext == "jpeg":
-                ext = "jpg"
-                
-            safe_filename = f"{uuid.uuid4()}.{ext}"
-            absolute_path = os.path.join(inspection_dir, safe_filename)
-            relative_path = f"inspections/{inspection_id}/{safe_filename}"
-            
-            with open(absolute_path, "wb") as f:
-                f.write(file_bytes)
+     # 2. Process and save files
+uploaded_paths = []
+relative_paths = []
+
+try:
+    for file in files:
+        file_bytes = file.file.read()
+
+        if len(file_bytes) > MAX_FILE_SIZE_BYTES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File {file.filename} exceeds the 5MB size limit"
+            )
+
+        ext = file.content_type.split("/")[1]
+
+        if ext == "jpeg":
+            ext = "jpg"
+
+        safe_filename = f"{uuid.uuid4()}.{ext}"
+
+        relative_path = (
+            f"inspections/{inspection_id}/{safe_filename}"
+        )
+
+        supabase.storage.from_(STORAGE_BUCKET).upload(
+            path=relative_path,
+            file=file_bytes,
+            file_options={
+                "content-type": file.content_type,
+                "upsert": "false"
+            }
+        )
+
+        uploaded_paths.append(relative_path)
+        relative_paths.append(relative_path)
+
+except Exception as e:
+    if uploaded_paths:
+        try:
+            supabase.storage.from_(STORAGE_BUCKET).remove(
+                uploaded_paths
+            )
+        except Exception:
+            pass
+
+    raise e
                 
             saved_files.append(absolute_path)
             relative_paths.append(relative_path)
@@ -224,16 +261,40 @@ def extract_inspection_data(inspection_id: int, db: Session = Depends(get_db)):
     if not settings.GEMINI_API_KEY:
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not configured.")
         
-    # Verify at least one image exists physically
-    has_valid_image = False
+    # Download persistent evidence from Supabase Storage
+# into temporary local storage for Gemini processing.
+
+downloaded_files = []
+
+try:
     for rel_path in db_inspection.image_paths:
-        abs_path = os.path.join(settings.LOCAL_STORAGE_DIR, rel_path.replace("/", os.sep))
-        if os.path.exists(abs_path):
-            has_valid_image = True
-            break
-            
-    if not has_valid_image:
-        raise HTTPException(status_code=400, detail="No physical image files found on disk.")
+
+        file_bytes = (
+            supabase.storage
+            .from_(STORAGE_BUCKET)
+            .download(rel_path)
+        )
+
+        abs_path = os.path.join(
+            settings.LOCAL_STORAGE_DIR,
+            rel_path.replace("/", os.sep)
+        )
+
+        os.makedirs(
+            os.path.dirname(abs_path),
+            exist_ok=True
+        )
+
+        with open(abs_path, "wb") as f:
+            f.write(file_bytes)
+
+        downloaded_files.append(abs_path)
+
+except Exception as e:
+    raise HTTPException(
+        status_code=500,
+        detail=f"Failed to load inspection evidence: {str(e)}"
+    )
 
     # Transition to pending
     db_inspection.status = InspectionStatus.EXTRACTION_PENDING
@@ -249,10 +310,17 @@ def extract_inspection_data(inspection_id: int, db: Session = Depends(get_db)):
         db_inspection.status = InspectionStatus.EXTRACTION_COMPLETED
         db.commit()
         
+        
         # Immediately transition to Human Review Pending
         db_inspection.status = InspectionStatus.HUMAN_REVIEW_PENDING
         db.commit()
         db.refresh(db_inspection)
+        for local_file in downloaded_files:
+    try:
+        if os.path.exists(local_file):
+            os.remove(local_file)
+    except Exception:
+        pass
         return db_inspection
         
     except GeminiExtractionError as e:
