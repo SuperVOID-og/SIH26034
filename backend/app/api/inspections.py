@@ -161,7 +161,8 @@ def upload_inspection_images(
         if file.content_type not in ALLOWED_MIME_TYPES:
             raise HTTPException(status_code=400, detail=f"Unsupported file type: {file.content_type}")
             
-     # 2. Process and save files
+    # 2. Process and save files to Supabase Storage
+
 uploaded_paths = []
 relative_paths = []
 
@@ -182,9 +183,7 @@ try:
 
         safe_filename = f"{uuid.uuid4()}.{ext}"
 
-        relative_path = (
-            f"inspections/{inspection_id}/{safe_filename}"
-        )
+        relative_path = f"inspections/{inspection_id}/{safe_filename}"
 
         supabase.storage.from_(STORAGE_BUCKET).upload(
             path=relative_path,
@@ -208,18 +207,8 @@ except Exception as e:
             pass
 
     raise e
-                
-            saved_files.append(absolute_path)
-            relative_paths.append(relative_path)
-            
-    except Exception as e:
-        # Cleanup saved files on any failure
-        for saved_file in saved_files:
-            if os.path.exists(saved_file):
-                os.remove(saved_file)
-        raise e
 
-    # 3. Update database
+ # 3. Update database
     current_images = db_inspection.image_paths or []
     current_images.extend(relative_paths)
     
